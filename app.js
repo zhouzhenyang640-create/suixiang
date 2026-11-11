@@ -13,7 +13,7 @@
   let conversations = [];
   let messages = [];
   let trashItems = [];
-  let settings = { theme: 'system' };
+  let settings = { theme: 'system', preset: 'default' };
   let currentConversationId = null;
   let activeView = 'chats';
   let screen = 'home';
@@ -114,7 +114,7 @@
   async function refreshData() {
     [conversations, messages, trashItems] = await Promise.all([all('conversations'), all('messages'), all('trash')]);
     const saved = await all('settings');
-    settings = { theme: 'system' };
+    settings = { theme: 'system', preset: 'default' };
     for (const item of saved) settings[item.key] = item.value;
   }
   function getConversation(id) { return conversations.find(item => item.id === id); }
@@ -144,33 +144,22 @@
     await refreshData();
   }
 
-function applyTheme() {
-  const theme = settings.theme || 'system';
-
-  document.documentElement.dataset.theme = theme;
-
-  // 判断当前实际使用的深浅主题
-  const systemDark = window.matchMedia &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-  const isDark = theme === 'dark' ||
-    (theme === 'system' && systemDark);
-
-  const color = isDark ? '#171916' : '#f5f5f2';
-
-  // 重新创建 theme-color 标签，通知 Chrome 更新系统主题色
+function applyTheme() { 
+  const theme = settings.theme || 'system'; 
+  const preset = settings.preset === 'youmessage' ? 'youmessage' : 'default'; 
+  document.documentElement.dataset.theme = theme; 
+  document.documentElement.dataset.preset = preset;
+  const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = theme === 'dark' || (theme === 'system' && systemDark);
+  const color = preset === 'youmessage' ? (isDark ? '#000000' : '#F2F2F7') : (isDark ? '#171916' : '#f5f5f2');
   const oldMeta = document.querySelector('meta[name="theme-color"]');
-
-  if (!oldMeta || oldMeta.content !== color) {
-    if (oldMeta) oldMeta.remove();
-
-    const newMeta = document.createElement('meta');
-    newMeta.name = 'theme-color';
-    newMeta.content = color;
-    document.head.appendChild(newMeta);
-  }
+  if (!oldMeta || oldMeta.content !== color) { 
+    if (oldMeta) oldMeta.remove(); const newMeta = document.createElement('meta'); 
+    newMeta.name = 'theme-color'; 
+    newMeta.content = color; 
+    document.head.appendChild(newMeta); 
+  } 
 }
-
   function sortedConversations() {
     return [...conversations].sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || (b.updatedAt || 0) - (a.updatedAt || 0));
   }
@@ -239,7 +228,7 @@ function applyTheme() {
   function renderSettingsBody() {
     return `
       <div class="settings-group"><div class="settings-title">外观</div><div class="settings-card">
-        <div class="setting-row"><div><div class="setting-label">主题模式</div><div class="setting-help">跟随系统，或固定使用浅色 / 深色</div></div><select class="setting-select" id="theme-select"><option value="system" ${settings.theme === 'system' ? 'selected' : ''}>跟随系统</option><option value="light" ${settings.theme === 'light' ? 'selected' : ''}>浅色模式</option><option value="dark" ${settings.theme === 'dark' ? 'selected' : ''}>深色模式</option></select></div>
+      <div class="setting-row"><div><div class="setting-label">聊天主题</div><div class="setting-help">选择预设的界面风格</div></div><select class="setting-select" id="preset-select"><option value="default" ${settings.preset !== 'youmessage' ? 'selected' : ''}>默认主题</option><option value="youmessage" ${settings.preset === 'youmessage' ? 'selected' : ''}>YouMessage</option></select></div> <div class="setting-row"><div><div class="setting-label">主题模式</div><div class="setting-help">跟随系统，或固定使用浅色 / 深色</div></div><select class="setting-select" id="theme-select"><option value="system" ${settings.theme === 'system' ? 'selected' : ''}>跟随系统</option><option value="light" ${settings.theme === 'light' ? 'selected' : ''}>浅色模式</option><option value="dark" ${settings.theme === 'dark' ? 'selected' : ''}>深色模式</option></select></div>
       </div></div>
       <div class="settings-group"><div class="settings-title">数据与备份</div><div class="settings-card">
         <div class="setting-row"><div><div class="setting-label">导出全部数据</div><div class="setting-help">生成 JSON 备份，包含对话、消息、收藏和图片</div></div><button class="setting-action" data-action="export-backup">导出 JSON</button></div>
