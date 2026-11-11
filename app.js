@@ -749,6 +749,7 @@ async function sendTextMessage(side = 'right') {
       importedMessages.forEach(item => tx.objectStore('messages').put(item));
       importedTrash.forEach(item => tx.objectStore('trash').put(item));
       if (raw.settings && typeof raw.settings === 'object' && ['system', 'light', 'dark'].includes(raw.settings.theme)) tx.objectStore('settings').put({ key: 'theme', value: raw.settings.theme });
+      if (raw.settings && typeof raw.settings === 'object' && ['default', 'youmessage'].includes(raw.settings.preset)) tx.objectStore('settings').put({ key: 'preset', value: raw.settings.preset });
       await txDone(tx);
       await refreshData();
       render();
@@ -883,6 +884,12 @@ async function sendTextMessage(side = 'right') {
       await refreshData();
       render();
     }
+    else if (event.target.id === 'preset-select') {
+  settings.preset = event.target.value === 'youmessage' ? 'youmessage' : 'default';
+  await put('settings', { key: 'preset', value: settings.preset });
+  await refreshData();
+  render();
+}
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
