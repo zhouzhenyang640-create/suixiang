@@ -401,40 +401,111 @@
     screen = 'chat';
     render();
   }
-  async function sendTextMessage(side = 'right') {
-    const input = document.getElementById('composer-input');
-    if (!input || !currentConversationId) return;
-    const content = safeText(input.value);
-    if (!content) return;
-    const conv = getConversation(currentConversationId);
-    if (editingMessageId) {
-      const old = messages.find(item => item.id === editingMessageId);
-      if (old) {
-        old.content = content;
-        old.side = side;
-        old.updatedAt = Date.now();
-        await put('messages', old);
-      }
-      editingMessageId = null;
-      await refreshData();
-      await updateConversationPreview(currentConversationId);
-      render();
-      toast('已保存修改');
-      return;
+
+async function sendTextMessage(side = 'right') {
+  const input = document.getElementById('composer-input');
+  if (!input || !currentConversationId) return;
+
+  const content = safeText(input.value);
+  if (!content) return;
+
+  const conv = getConversation(currentConversationId);
+
+  // 编辑历史消息
+  if (editingMessageId) {
+    const old = messages.find(item => item.id === editingMessageId);
+
+    if (old) {
+      old.content = content;
+      old.side = side;
+      old.updatedAt = Date.now();
+      await put('messages', old);
     }
-    const now = Date.now();
-    const message = { id: uid(), conversationId: currentConversationId, type: 'text', content, side, favorite: false, createdAt: now, updatedAt: now };
-    const tx = db.transaction(['messages', 'conversations'], 'readwrite');
-    tx.objectStore('messages').put(message);
-    if (conv) {
-      conv.lastMessagePreview = previewFor(message);
-      conv.updatedAt = now;
-      tx.objectStore('conversations').put(conv);
-    }
-    await txDone(tx);
+
+    editingMessageId = null;
     await refreshData();
-    render();
+    await updateConversationPreview(currentConversationId);
+
+    // 只更新原消息，不重建输入框
+    const row = document.querySelector(
+      `[data-message-id="${CSS.escape(old.id)}"]`
+    );
+
+    if (row) {
+      row.classList.toggle('message-row-left', side === 'left');
+
+      const bubble = row.querySelector('.message-bubble');
+      if (bubble) {
+        bubble.classList.toggle('opposite-bubble', side === 'left');
+        bubble.textContent = content;
+      }
+    }
+
+    document.querySelector('.editing-banner')?.remove();
+
+    input.value = '';
+    resizeComposer(input);
+    updateSendButton();
+
+    toast('已保存修改');
+    return;
   }
+
+  // 新建消息
+  const now = Date.now();
+  const message = {
+    id: uid(),
+    conversationId: currentConversationId,
+    type: 'text',
+    content,
+    side,
+    favorite: false,
+    createdAt: now,
+    updatedAt: now
+  };
+
+  const tx = db.transaction(
+    ['messages', 'conversations'],
+    'readwrite'
+  );
+
+  tx.objectStore('messages').put(message);
+
+  if (conv) {
+    conv.lastMessagePreview = previewFor(message);
+    conv.updatedAt = now;
+    tx.objectStore('conversations').put(conv);
+  }
+
+  await txDone(tx);
+  await refreshData();
+
+  // 只向聊天区域添加新消息
+  const area = document.getElementById('messages-area');
+
+  if (area) {
+    const row = document.createElement('div');
+    row.className = 'message-row' +
+      (side === 'left' ? ' message-row-left' : '');
+    row.dataset.messageId = message.id;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble' +
+      (side === 'left' ? ' opposite-bubble' : '');
+    bubble.dataset.id = message.id;
+    bubble.textContent = content;
+
+    row.appendChild(bubble);
+    area.appendChild(row);
+    area.scrollTop = area.scrollHeight;
+  }
+
+  // 清空输入框，但保留原输入框和焦点
+  input.value = '';
+  resizeComposer(input);
+  updateSendButton();
+}
+
   async function sendImageFiles(files) {
     if (!currentConversationId || !files?.length) return;
     const conv = getConversation(currentConversationId);
@@ -815,6 +886,10 @@
   });
 
   document.addEventListener('pointerdown', event => {
+    if (event.target.closest('#send-button, [data-action="send-opposite"]')) {
+  event.preventDefault();
+  return;
+}
     const bubble = event.target.closest('.message-bubble[data-id]');
     if (!bubble) return;
     const id = bubble.dataset.id;
