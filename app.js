@@ -786,10 +786,6 @@
       if (modalRoot.innerHTML) closeModal();
       else if (screen !== 'home') { screen = 'home'; render(); }
     }
-    if (event.target.id === 'composer-input' && event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
-      event.preventDefault();
-      sendTextMessage();
-    }
     if (event.target.matches('[data-action="open-chat"]') && (event.key === 'Enter' || event.key === ' ')) {
       event.preventDefault();
       currentConversationId = event.target.dataset.id;
