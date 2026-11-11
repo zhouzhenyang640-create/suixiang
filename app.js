@@ -143,11 +143,34 @@
     await put('conversations', conv);
     await refreshData();
   }
-  function applyTheme() {
-    document.documentElement.dataset.theme = settings.theme || 'system';
-    const themeMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeMeta) themeMeta.content = settings.theme === 'dark' ? '#171916' : '#f7f7f5';
+
+function applyTheme() {
+  const theme = settings.theme || 'system';
+
+  document.documentElement.dataset.theme = theme;
+
+  // 判断当前实际使用的深浅主题
+  const systemDark = window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  const isDark = theme === 'dark' ||
+    (theme === 'system' && systemDark);
+
+  const color = isDark ? '#171916' : '#f5f5f2';
+
+  // 重新创建 theme-color 标签，通知 Chrome 更新系统主题色
+  const oldMeta = document.querySelector('meta[name="theme-color"]');
+
+  if (!oldMeta || oldMeta.content !== color) {
+    if (oldMeta) oldMeta.remove();
+
+    const newMeta = document.createElement('meta');
+    newMeta.name = 'theme-color';
+    newMeta.content = color;
+    document.head.appendChild(newMeta);
   }
+}
+
   function sortedConversations() {
     return [...conversations].sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || (b.updatedAt || 0) - (a.updatedAt || 0));
   }
