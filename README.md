@@ -19,25 +19,3 @@
 3. 图片会增加备份文件体积。JSON 备份会把图片转换为 Data URL，图片较多时文件可能很大。
 4. PWA 安装和 Service Worker 离线缓存需要 HTTPS（或开发时使用 localhost）。直接双击 `index.html` 通常不能安装为 PWA。
 5. 删除整个对话会同时删除其中的消息；消息回收站只处理单条消息。删除整个对话前建议先导出 TXT 或完整 JSON。
-
-## 发布为手机可安装的 PWA
-
-把本目录中的全部文件上传到支持静态站点的 HTTPS 托管服务即可，不需要运行构建命令，也不需要安装依赖。比如 GitHub Pages：
-
-1. 创建一个新的 GitHub 仓库。
-2. 上传本目录中的全部文件，确保 `index.html` 位于发布目录根部。
-3. 在仓库 Settings → Pages 中选择从分支发布，并选择包含 `index.html` 的目录。
-4. 等待 Pages 提供 HTTPS 地址后，用 Android Chrome 打开该地址。
-5. 在浏览器菜单中选择“安装应用”或“添加到主屏幕”。安装后可以从手机桌面全屏打开。
-
-也可以使用其他提供 HTTPS 静态托管的服务。这个站点只托管 HTML、CSS、JavaScript 和图标；消息和图片仍保存在手机浏览器本地。
-
-## 本地开发
-
-在项目目录运行任意静态 HTTP 服务，例如：
-
-```bash
-python -m http.server 8080
-```
-
-然后访问 `http://localhost:8080`。本机开发时 localhost 被浏览器视为可信来源，可测试 IndexedDB 和 Service Worker。
