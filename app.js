@@ -203,7 +203,6 @@
     const preview = message.type === 'image' ? '▧ 图片' : message.content;
     return `<div class="search-result" data-action="jump-message" data-id="${esc(message.id)}">
       <div class="result-icon">${esc(conv?.icon || '✦')}</div><div class="result-body"><div class="result-title">${esc(conv?.title || '已删除的对话')}</div><div class="result-snippet">${esc(preview.slice(0, 160))}</div></div>
-      <button class="menu-item" data-action="toggle-message-side" data-id="${esc(id)}">${icon('reply')}${message.side === 'left' ? '移到右侧' : '移到左侧'}</button>
       <button class="row-more" data-action="favorite-toggle" data-id="${esc(message.id)}" aria-label="取消收藏">${icon('heart')}</button>
     </div>`;
   }
@@ -369,6 +368,9 @@
     const favoriteLabel = message.favorite ? '取消收藏' : '收藏这条消息';
     const body = `<div class="menu-list">
       ${message.type === 'text' ? `<button class="menu-item" data-action="edit-message" data-id="${esc(id)}">${icon('edit')}修改消息</button><button class="menu-item" data-action="copy-message" data-id="${esc(id)}">${icon('copy')}复制文字</button>` : `<button class="menu-item" data-action="view-image" data-id="${esc(id)}">${icon('image')}查看图片</button>`}
+      <button class="menu-item" data-action="toggle-message-side" data-id="${esc(id)}">
+  ${icon('reply')}${message.side === 'left' ? '移到右侧' : '移到左侧'}
+</button>
       <button class="menu-item" data-action="favorite-toggle" data-id="${esc(id)}">${icon('heart')}${favoriteLabel}</button>
       <button class="menu-item danger" data-action="delete-message" data-id="${esc(id)}">${icon('trash')}移入回收站</button>
     </div>`;
