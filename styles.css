@@ -128,6 +128,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .composer { display: flex; align-items: flex-end; gap: 8px; background: var(--surface-2); border-radius: 22px; padding: 6px; }
 .composer .attach-btn { flex: 0 0 38px; height: 38px; border: 0; border-radius: 15px; color: var(--muted); background: transparent; display: grid; place-items: center; cursor: pointer; }
 .composer .attach-btn svg { width: 19px; height: 19px; }
+.composer [data-action="send-opposite"] + [data-action="choose-image"] {
+  margin-left: -4px;
+}
 .composer textarea { flex: 1; min-width: 0; resize: none; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 14px; line-height: 1.5; padding: 9px 3px 8px; min-height: 38px; max-height: 132px; }
 .composer textarea::placeholder { color: var(--muted-2); }
 .send-btn { flex: 0 0 39px; width: 39px; height: 39px; display: grid; place-items: center; border: 0; border-radius: 15px; background: var(--text); color: var(--bg); cursor: pointer; }
