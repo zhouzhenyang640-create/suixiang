@@ -256,7 +256,7 @@
         <footer class="composer-wrap">
           ${editingMessageId ? `<div class="editing-banner"><span>正在修改这条消息</span><button class="icon-btn" style="width:28px;height:28px" data-action="cancel-edit" aria-label="取消修改">${icon('close')}</button></div>` : ''}
           <form class="composer" id="composer-form">
-          ${editingMessageId ? '' : `<button class="attach-btn" type="button" data-action="send-opposite" aria-label="发送对面消息">${icon('reply')}</button>`}
+          <button class="attach-btn" type="button" data-action="send-opposite" aria-label="发送对面消息">${icon('reply')}</button>
             <button class="attach-btn" type="button" data-action="choose-image" aria-label="发送图片">${icon('image')}</button>
             <textarea id="composer-input" rows="1" maxlength="20000" placeholder="写下此刻的想法……" aria-label="输入消息"></textarea>
             <button class="send-btn" type="submit" id="send-button" disabled aria-label="发送">${icon('send')}</button>
@@ -411,6 +411,7 @@
       const old = messages.find(item => item.id === editingMessageId);
       if (old) {
         old.content = content;
+        old.side = side;
         old.updatedAt = Date.now();
         await put('messages', old);
       }
