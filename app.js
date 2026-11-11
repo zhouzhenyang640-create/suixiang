@@ -37,6 +37,7 @@
     back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
     send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>',
     image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>',
+    reply: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 7 7v2"/></svg>',
     sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>',
     moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.1A8.5 8.5 0 0 1 9.9 3.5 8.5 8.5 0 1 0 20.5 14.1Z"/></svg>',
     download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M4 20h16"/></svg>',
@@ -202,6 +203,7 @@
     const preview = message.type === 'image' ? '▧ 图片' : message.content;
     return `<div class="search-result" data-action="jump-message" data-id="${esc(message.id)}">
       <div class="result-icon">${esc(conv?.icon || '✦')}</div><div class="result-body"><div class="result-title">${esc(conv?.title || '已删除的对话')}</div><div class="result-snippet">${esc(preview.slice(0, 160))}</div></div>
+      <button class="menu-item" data-action="toggle-message-side" data-id="${esc(id)}">${icon('reply')}${message.side === 'left' ? '移到右侧' : '移到左侧'}</button>
       <button class="row-more" data-action="favorite-toggle" data-id="${esc(message.id)}" aria-label="取消收藏">${icon('heart')}</button>
     </div>`;
   }
@@ -235,12 +237,14 @@
     const list = getConversationMessages(conv.id);
     const intro = `<div class="chat-intro"><div class="intro-avatar">${esc(conv.icon || '✦')}</div><strong>${esc(conv.title)}</strong><span>这是一个只属于这个话题的空间</span></div>`;
     const messageHtml = list.map(message => {
-      if (message.type === 'image') {
-        const src = imageSrc(message);
-        return `<div class="message-row" data-message-id="${esc(message.id)}"><div class="message-bubble image-bubble" data-id="${esc(message.id)}"><img src="${src}" alt="图片消息" data-action="view-image" data-id="${esc(message.id)}"></div></div>`;
-      }
-      return `<div class="message-row" data-message-id="${esc(message.id)}"><div class="message-bubble" data-id="${esc(message.id)}">${esc(message.content)}</div></div>`;
-    }).join('');
+  const leftRow = message.side === 'left' ? ' message-row-left' : '';
+  const leftBubble = message.side === 'left' ? ' opposite-bubble' : '';
+  if (message.type === 'image') {
+    const src = imageSrc(message);
+    return `<div class="message-row${leftRow}" data-message-id="${esc(message.id)}"><div class="message-bubble image-bubble${leftBubble}" data-id="${esc(message.id)}"><img src="${src}" alt="图片消息" data-action="view-image" data-id="${esc(message.id)}"></div></div>`;
+  }
+  return `<div class="message-row${leftRow}" data-message-id="${esc(message.id)}"><div class="message-bubble${leftBubble}" data-id="${esc(message.id)}">${esc(message.content)}</div></div>`;
+}).join('');
     app.innerHTML = `
       <section class="chat-screen">
         <header class="chat-header">
@@ -253,6 +257,7 @@
         <footer class="composer-wrap">
           ${editingMessageId ? `<div class="editing-banner"><span>正在修改这条消息</span><button class="icon-btn" style="width:28px;height:28px" data-action="cancel-edit" aria-label="取消修改">${icon('close')}</button></div>` : ''}
           <form class="composer" id="composer-form">
+          ${editingMessageId ? '' : `<button class="attach-btn" type="button" data-action="send-opposite" aria-label="发送对面消息">${icon('reply')}</button>`}
             <button class="attach-btn" type="button" data-action="choose-image" aria-label="发送图片">${icon('image')}</button>
             <textarea id="composer-input" rows="1" maxlength="20000" placeholder="写下此刻的想法……" aria-label="输入消息"></textarea>
             <button class="send-btn" type="submit" id="send-button" disabled aria-label="发送">${icon('send')}</button>
@@ -394,7 +399,7 @@
     screen = 'chat';
     render();
   }
-  async function sendTextMessage() {
+  async function sendTextMessage(side = 'right') {
     const input = document.getElementById('composer-input');
     if (!input || !currentConversationId) return;
     const content = safeText(input.value);
@@ -415,7 +420,7 @@
       return;
     }
     const now = Date.now();
-    const message = { id: uid(), conversationId: currentConversationId, type: 'text', content, favorite: false, createdAt: now, updatedAt: now };
+    const message = { id: uid(), conversationId: currentConversationId, type: 'text', content, side, favorite: false, createdAt: now, updatedAt: now };
     const tx = db.transaction(['messages', 'conversations'], 'readwrite');
     tx.objectStore('messages').put(message);
     if (conv) {
@@ -433,7 +438,7 @@
     for (const file of [...files]) {
       if (!file.type.startsWith('image/')) continue;
       const now = Date.now();
-      const message = { id: uid(), conversationId: currentConversationId, type: 'image', blob: file.slice(0, file.size, file.type), favorite: false, createdAt: now, updatedAt: now };
+      const message = { id: uid(), conversationId: currentConversationId, type: 'image', blob: file.slice(0, file.size, file.type), side: 'right', favorite: false, createdAt: now, updatedAt: now };
       const tx = db.transaction(['messages', 'conversations'], 'readwrite');
       tx.objectStore('messages').put(message);
       if (conv) {
@@ -472,6 +477,16 @@
     render();
     toast('已移入回收站');
   }
+  async function toggleMessageSide(id) {
+  const message = messages.find(item => item.id === id);
+  if (!message) return;
+  message.side = message.side === 'left' ? 'right' : 'left';
+  await put('messages', message);
+  await refreshData();
+  closeModal();
+  render();
+  toast(message.side === 'left' ? '消息已移到左侧' : '消息已移到右侧');
+}
   async function toggleFavorite(id) {
     const message = messages.find(item => item.id === id);
     if (!message) return;
@@ -704,6 +719,8 @@
       const msg = messages.find(item => item.id === id);
       if (msg) { currentConversationId = msg.conversationId; pendingJumpTo = id; screen = 'chat'; editingMessageId = null; render(); }
     }
+    else if (action === 'send-opposite') await sendTextMessage('left');
+    else if (action === 'toggle-message-side') await toggleMessageSide(id);
     else if (action === 'choose-image') imagePicker.click();
     else if (action === 'export-backup') await exportBackup();
     else if (action === 'import-backup') backupPicker.click();
