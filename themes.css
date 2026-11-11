@@ -1,0 +1,258 @@
+/* YouMessage preset theme
+   Theme variables and visual overrides are intentionally kept together.
+   The default preset continues to use styles.css without overrides.
+*/
+
+:root[data-preset="youmessage"] {
+  color-scheme: light;
+  --bg: #F2F2F7;
+  --surface: #FFFFFF;
+  --surface-2: #F2F2F7;
+  --surface-3: #E5E5EA;
+  --text: #1C1C1E;
+  --muted: #8E8E93;
+  --muted-2: #AEAEB2;
+  --line: rgba(60, 60, 67, .16);
+  --accent: #DCEBFF;
+  --accent-strong: #007AFF;
+  --bubble: #007AFF;
+  --bubble-text: #FFFFFF;
+  --bubble-other: #E5E5EA;
+  --bubble-other-text: #1C1C1E;
+  --danger: #FF3B30;
+  --shadow: 0 12px 36px rgba(20, 35, 60, .08);
+}
+
+:root[data-preset="youmessage"][data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: #1C1C1E;
+  --surface-2: #2C2C2E;
+  --surface-3: #3A3A3C;
+  --text: #FFFFFF;
+  --muted: #8E8E93;
+  --muted-2: #636366;
+  --line: rgba(84, 84, 88, .62);
+  --accent: #173B63;
+  --accent-strong: #0A84FF;
+  --bubble: #0A84FF;
+  --bubble-text: #FFFFFF;
+  --bubble-other: #2C2C2E;
+  --bubble-other-text: #FFFFFF;
+  --danger: #FF453A;
+  --shadow: 0 14px 44px rgba(0, 0, 0, .38);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-preset="youmessage"][data-theme="system"] {
+    color-scheme: dark;
+    --bg: #000000;
+    --surface: #1C1C1E;
+    --surface-2: #2C2C2E;
+    --surface-3: #3A3A3C;
+    --text: #FFFFFF;
+    --muted: #8E8E93;
+    --muted-2: #636366;
+    --line: rgba(84, 84, 88, .62);
+    --accent: #173B63;
+    --accent-strong: #0A84FF;
+    --bubble: #0A84FF;
+    --bubble-text: #FFFFFF;
+    --bubble-other: #2C2C2E;
+    --bubble-other-text: #FFFFFF;
+    --danger: #FF453A;
+    --shadow: 0 14px 44px rgba(0, 0, 0, .38);
+  }
+}
+
+/* Global surfaces and restrained iOS-like treatment */
+:root[data-preset="youmessage"] .app-shell {
+  background: var(--bg);
+}
+
+:root[data-preset="youmessage"] .primary-icon-btn {
+  background: var(--accent-strong);
+  color: #FFFFFF;
+  box-shadow: 0 5px 14px rgba(0, 122, 255, .19);
+}
+
+:root[data-preset="youmessage"] .icon-btn:active,
+:root[data-preset="youmessage"] .row-more:active {
+  background: color-mix(in srgb, var(--accent-strong) 10%, transparent);
+}
+
+:root[data-preset="youmessage"] .list-card,
+:root[data-preset="youmessage"] .settings-card {
+  border-color: var(--line);
+  box-shadow: none;
+}
+
+:root[data-preset="youmessage"] .avatar,
+:root[data-preset="youmessage"] .result-icon,
+:root[data-preset="youmessage"] .chat-intro .intro-avatar {
+  background: var(--surface-2);
+}
+
+:root[data-preset="youmessage"] .pin-mark {
+  color: var(--accent-strong);
+}
+
+:root[data-preset="youmessage"] .empty-orb {
+  background: color-mix(in srgb, var(--accent-strong) 10%, var(--surface));
+  color: var(--accent-strong);
+}
+
+/* Conversation bubbles with small iMessage-inspired tails */
+:root[data-preset="youmessage"] .message-bubble {
+  position: relative;
+  border-radius: 20px 20px 5px 20px;
+  box-shadow: none;
+}
+
+:root[data-preset="youmessage"] .message-bubble.opposite-bubble {
+  border-radius: 20px 20px 20px 5px;
+}
+
+:root[data-preset="youmessage"] .message-bubble::after {
+  content: "";
+  position: absolute;
+  right: -5px;
+  bottom: 0;
+  width: 12px;
+  height: 14px;
+  background: var(--bubble);
+  clip-path: polygon(0 0, 100% 100%, 0 78%);
+  pointer-events: none;
+}
+
+:root[data-preset="youmessage"] .message-bubble.opposite-bubble::after {
+  right: auto;
+  left: -5px;
+  background: var(--bubble-other);
+  clip-path: polygon(100% 0, 0 100%, 100% 78%);
+}
+
+:root[data-preset="youmessage"] .message-bubble.image-bubble {
+  padding: 5px;
+  overflow: visible;
+}
+
+:root[data-preset="youmessage"] .message-bubble.image-bubble img {
+  border-radius: 16px;
+}
+
+/* Composer: separate round tools, soft capsule field, blue send control */
+:root[data-preset="youmessage"] .composer-wrap {
+  background: var(--surface);
+  border-top-color: var(--line);
+}
+
+:root[data-preset="youmessage"] .composer {
+  gap: 7px;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  align-items: center;
+}
+
+:root[data-preset="youmessage"] .composer .attach-btn {
+  flex-basis: 38px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+:root[data-preset="youmessage"] .composer [data-action="send-opposite"] + [data-action="choose-image"] {
+  margin-left: -3px;
+}
+
+:root[data-preset="youmessage"] .composer textarea {
+  min-height: 40px;
+  padding: 9px 13px 8px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface-2);
+}
+
+:root[data-preset="youmessage"] .send-btn {
+  flex-basis: 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-strong);
+  color: #FFFFFF;
+}
+
+:root[data-preset="youmessage"] .send-btn:disabled {
+  opacity: .42;
+}
+
+:root[data-preset="youmessage"] .editing-banner {
+  color: var(--accent-strong);
+}
+
+/* Blue replaces the former green accent throughout the app */
+:root[data-preset="youmessage"] .nav-item.active {
+  color: var(--accent-strong);
+}
+
+:root[data-preset="youmessage"] .nav-item.active svg,
+:root[data-preset="youmessage"] .menu-item svg {
+  color: var(--accent-strong);
+}
+
+:root[data-preset="youmessage"] .setting-action {
+  color: var(--accent-strong);
+  background: color-mix(in srgb, var(--accent-strong) 10%, var(--surface));
+}
+
+:root[data-preset="youmessage"] .setting-select {
+  border-color: var(--line);
+  background: var(--surface-2);
+}
+
+:root[data-preset="youmessage"] .form-input:focus {
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-strong) 14%, transparent);
+}
+
+:root[data-preset="youmessage"] .btn-primary {
+  background: var(--accent-strong);
+  color: #FFFFFF;
+}
+
+:root[data-preset="youmessage"] .btn-secondary {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+:root[data-preset="youmessage"] .search-field {
+  background: var(--surface-2);
+  border-color: var(--line);
+}
+
+:root[data-preset="youmessage"] .search-result mark {
+  background: var(--accent);
+  color: var(--text);
+}
+
+:root[data-preset="youmessage"] .bottom-nav {
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border-top-color: var(--line);
+}
+
+:root[data-preset="youmessage"] .modal {
+  border: 1px solid var(--line);
+}
+
+:root[data-preset="youmessage"] .toast {
+  background: var(--text);
+  color: var(--bg);
+}
+
+:root[data-preset="youmessage"] .message-bubble.highlight {
+  outline-color: var(--accent-strong);
+}
