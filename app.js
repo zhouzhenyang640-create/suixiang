@@ -3,7 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.3.2';
+  const APP_VERSION = '9.3.3';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -406,7 +406,10 @@ function applyTheme() {
     const grouped = (previousSameSide ? ' grouped-prev' : '') + (nextSameSide ? ' grouped-next' : '');
     const tail = !nextSameSide && isYouMessagePreset() ? youMessageTail : '';
     const quote = message.quote ? renderQuoteCard(message.id, message.quote, true) : '';
-    const quotedRow = quote ? ' has-quote' : '';
+    const previousDifferentSide = index > 0 && list[index - 1].side !== message.side;
+    const quotedRow = quote
+      ? ' has-quote' + (previousDifferentSide ? ' quote-after-different' : '')
+      : '';
 
     if (message.type === 'image') {
       const src = imageSrc(message);
