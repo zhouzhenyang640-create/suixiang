@@ -53,6 +53,23 @@
 
   const youMessageTail = '<svg class="youmessage-tail" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M 14.5 0 C 14.5 6 15.6 17.3 19 19.5 Q 19.6 20.1 18.4 20.6 Q 13.4 20.1 8.5 15.5 L 2 14 L 2 0 Z" fill="currentColor"/></svg>';
 
+  function syncMessageGrouping(area, list) {
+    if (!area) return;
+    list.forEach((message, index) => {
+      const row = area.querySelector(`[data-message-id="${CSS.escape(message.id)}"]`);
+      if (!row) return;
+      const previousSameSide = index > 0 && list[index - 1].side === message.side;
+      const nextSameSide = index < list.length - 1 && list[index + 1].side === message.side;
+      row.classList.toggle('grouped-prev', previousSameSide);
+      row.classList.toggle('grouped-next', nextSameSide);
+      const bubble = row.querySelector('.message-bubble');
+      if (!bubble) return;
+      const tail = bubble.querySelector('.youmessage-tail');
+      if (nextSameSide && tail) tail.remove();
+      else if (!nextSameSide && !tail) bubble.insertAdjacentHTML('beforeend', youMessageTail);
+    });
+  }
+
   function icon(name) { return icons[name] || icons.book; }
   function uid() { return (crypto.randomUUID ? crypto.randomUUID() : `id_${Date.now()}_${Math.random().toString(36).slice(2)}`); }
   function esc(value) {
@@ -153,7 +170,7 @@ function applyTheme() {
   document.documentElement.dataset.preset = preset;
   const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   const isDark = theme === 'dark' || (theme === 'system' && systemDark);
-  const color = preset === 'youmessage' ? (isDark ? '#000000' : '#F2F2F7') : (isDark ? '#171916' : '#f5f5f2');
+  const color = preset === 'youmessage' ? (isDark ? '#000000' : '#FFFFFF') : (isDark ? '#171916' : '#f5f5f2');
   const oldMeta = document.querySelector('meta[name="theme-color"]');
   if (!oldMeta || oldMeta.content !== color) { 
     if (oldMeta) oldMeta.remove(); const newMeta = document.createElement('meta'); 
@@ -249,14 +266,18 @@ function applyTheme() {
     if (!conv) { screen = 'home'; renderHome(); return; }
     const list = getConversationMessages(conv.id);
     const intro = `<div class="chat-intro"><div class="intro-avatar">${esc(conv.icon || '✦')}</div><strong>${esc(conv.title)}</strong><span>这是一个只属于这个话题的空间</span></div>`;
-    const messageHtml = list.map(message => {
+    const messageHtml = list.map((message, index) => {
+  const previousSameSide = index > 0 && list[index - 1].side === message.side;
+  const nextSameSide = index < list.length - 1 && list[index + 1].side === message.side;
   const leftRow = message.side === 'left' ? ' message-row-left' : '';
   const leftBubble = message.side === 'left' ? ' opposite-bubble' : '';
+  const grouped = (previousSameSide ? ' grouped-prev' : '') + (nextSameSide ? ' grouped-next' : '');
+  const tail = nextSameSide ? '' : youMessageTail;
   if (message.type === 'image') {
     const src = imageSrc(message);
-    return `<div class="message-row${leftRow}" data-message-id="${esc(message.id)}"><div class="message-bubble image-bubble${leftBubble}" data-id="${esc(message.id)}"><img src="${src}" alt="图片消息" data-action="view-image" data-id="${esc(message.id)}">${youMessageTail}</div></div>`;
+    return `<div class="message-row${leftRow}${grouped}" data-message-id="${esc(message.id)}"><div class="message-bubble image-bubble${leftBubble}" data-id="${esc(message.id)}"><img src="${src}" alt="图片消息" data-action="view-image" data-id="${esc(message.id)}">${tail}</div></div>`;
   }
-  return `<div class="message-row${leftRow}" data-message-id="${esc(message.id)}"><div class="message-bubble${leftBubble}" data-id="${esc(message.id)}"><span class="bubble-text">${esc(message.content)}</span>${youMessageTail}</div></div>`;
+  return `<div class="message-row${leftRow}${grouped}" data-message-id="${esc(message.id)}"><div class="message-bubble${leftBubble}" data-id="${esc(message.id)}"><span class="bubble-text">${esc(message.content)}</span>${tail}</div></div>`;
 }).join('');
     app.innerHTML = `
       <section class="chat-screen">
@@ -459,6 +480,10 @@ async function sendTextMessage(side = 'right') {
         }
         bubbleText.textContent = content;
       }
+      syncMessageGrouping(
+        document.getElementById('messages-area'),
+        getConversationMessages(currentConversationId)
+      );
     }
 
     document.querySelector('.editing-banner')?.remove();
@@ -521,6 +546,7 @@ async function sendTextMessage(side = 'right') {
 
     row.appendChild(bubble);
     area.appendChild(row);
+    syncMessageGrouping(area, getConversationMessages(currentConversationId));
     area.scrollTop = area.scrollHeight;
   }
 
