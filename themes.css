@@ -420,7 +420,7 @@
   top: calc(0px - env(safe-area-inset-top));
   left: 0;
   right: 0;
-  height: calc(158px + env(safe-area-inset-top));
+  height: calc(92px + env(safe-area-inset-top) + env(safe-area-inset-top));
   background: linear-gradient(
     to bottom,
     var(--chat-nav-gradient-top) 0%,
