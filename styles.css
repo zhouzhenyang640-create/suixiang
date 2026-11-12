@@ -112,6 +112,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .chat-intro strong { color: var(--text); font-size: 14px; margin-bottom: 5px; }
 .message-row { display: flex; flex-direction: column; align-items: flex-end; width: 100%; }
 .message-row-left { align-items: flex-start; }
+/* Extra lead-in before a quoted reply; normal message spacing stays unchanged. */
+.message-row.has-quote { margin-top: 9px; }
 .message-bubble.opposite-bubble {
   background: var(--bubble-other);
   color: var(--bubble-other-text);
@@ -205,7 +207,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   width: fit-content;
   max-width: min(76%, 460px);
   min-width: 0;
-  margin: 0 0 7px;
+  margin: 0 0 9px;
   padding: 7px 11px;
   border: 1px solid var(--bubble);
   border-radius: 19px;
