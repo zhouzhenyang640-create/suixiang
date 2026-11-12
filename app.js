@@ -3,7 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.2.6';
+  const APP_VERSION = '9.2.7';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -22,6 +22,7 @@
   let editingMessageId = null;
   let installPrompt = null;
   let pendingJumpTo = null;
+  let pendingScrollTop = null;
   let serviceWorkerRegistration = null;
   let serviceWorkerController = null;
   let serviceWorkerUpdateReady = false;
@@ -374,7 +375,12 @@ function applyTheme() {
     if (pendingJumpTo) {
       const target = pendingJumpTo;
       pendingJumpTo = null;
+      pendingScrollTop = null;
       requestAnimationFrame(() => scrollToMessage(target, 'smooth', true));
+    } else if (pendingScrollTop !== null) {
+      const scrollTop = pendingScrollTop;
+      pendingScrollTop = null;
+      requestAnimationFrame(() => { area.scrollTop = scrollTop; });
     } else {
       requestAnimationFrame(() => { area.scrollTop = area.scrollHeight; });
     }
@@ -559,7 +565,6 @@ async function sendTextMessage(side = 'right') {
     resizeComposer(input);
     updateSendButton();
 
-    requestAnimationFrame(() => scrollToMessage(old.id, 'auto'));
     toast('已保存修改');
     return;
   }
@@ -648,9 +653,11 @@ async function sendTextMessage(side = 'right') {
   async function beginEditMessage(id) {
     const message = messages.find(item => item.id === id);
     if (!message || message.type !== 'text') return;
+    const area = document.getElementById('messages-area');
+    pendingScrollTop = area ? area.scrollTop : null;
+    pendingJumpTo = null;
     currentConversationId = message.conversationId;
     editingMessageId = id;
-    pendingJumpTo = id;
     screen = 'chat';
     closeModal();
     render();
@@ -673,11 +680,14 @@ async function sendTextMessage(side = 'right') {
   async function toggleMessageSide(id) {
   const message = messages.find(item => item.id === id);
   if (!message) return;
+  const area = document.getElementById('messages-area');
+  const currentScrollTop = area ? area.scrollTop : null;
   message.side = message.side === 'left' ? 'right' : 'left';
   await put('messages', message);
   await refreshData();
   closeModal();
-  pendingJumpTo = id;
+  pendingJumpTo = null;
+  pendingScrollTop = currentScrollTop;
   render();
   toast(message.side === 'left' ? '消息已移到左侧' : '消息已移到右侧');
 }
@@ -1012,7 +1022,7 @@ async function sendTextMessage(side = 'right') {
     }
     else if (action === 'jump-message') {
       const msg = messages.find(item => item.id === id);
-      if (msg) { currentConversationId = msg.conversationId; pendingJumpTo = id; screen = 'chat'; editingMessageId = null; render(); }
+      if (msg) { currentConversationId = msg.conversationId; pendingJumpTo = id; pendingScrollTop = null; screen = 'chat'; editingMessageId = null; render(); }
     }
     else if (action === 'send-opposite') await sendTextMessage('left');
     else if (action === 'toggle-message-side') await toggleMessageSide(id);
