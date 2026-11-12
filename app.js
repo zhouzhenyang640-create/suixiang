@@ -471,6 +471,7 @@ function applyTheme() {
     }
 
     revokeQuoteImage('composer');
+    longPressTriggered = false;
     pendingQuote = {
       messageId: original.id,
       conversationId: original.conversationId,
@@ -533,9 +534,9 @@ function applyTheme() {
     if (!area || !row) return;
     row.scrollIntoView({ block: 'center', behavior });
     if (highlight) {
-      const bubble = row.querySelector('.message-bubble');
-      bubble?.classList.add('highlight');
-      setTimeout(() => bubble?.classList.remove('highlight'), 1800);
+      const bubble = row.querySelector('.message-bubble:not(.empty-bubble)') || row.querySelector('.message-quote') || row;
+      bubble.classList.add('highlight');
+      setTimeout(() => bubble.classList.remove('highlight'), 1800);
     }
   }
 
@@ -1338,7 +1339,7 @@ async function sendTextMessage(side = 'right') {
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
   }, { passive: true }));
   document.addEventListener('contextmenu', event => {
-    if (event.target.closest('.message-bubble[data-id]')) event.preventDefault();
+    if (event.target.closest('.message-bubble[data-id], .message-quote[data-id]')) event.preventDefault();
   });
 
   imagePicker.addEventListener('change', async event => {
