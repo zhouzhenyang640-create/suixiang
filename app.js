@@ -53,8 +53,13 @@
 
   const youMessageTail = '<svg class="youmessage-tail" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M 14.5 0 C 14.5 6 15.6 17.3 19 19.5 Q 19.6 20.1 18.4 20.6 Q 13.4 20.1 8.5 15.5 L 2 14 L 2 0 Z" fill="currentColor"/></svg>';
 
+  function isYouMessagePreset() {
+    return document.documentElement.dataset.preset === 'youmessage';
+  }
+
   function syncMessageGrouping(area, list) {
     if (!area) return;
+    const showYouMessageTail = isYouMessagePreset();
     list.forEach((message, index) => {
       const row = area.querySelector(`[data-message-id="${CSS.escape(message.id)}"]`);
       if (!row) return;
@@ -65,8 +70,11 @@
       const bubble = row.querySelector('.message-bubble');
       if (!bubble) return;
       const tail = bubble.querySelector('.youmessage-tail');
-      if (nextSameSide && tail) tail.remove();
-      else if (!nextSameSide && !tail) bubble.insertAdjacentHTML('beforeend', youMessageTail);
+      if (!showYouMessageTail || nextSameSide) {
+        if (tail) tail.remove();
+      } else if (!tail) {
+        if (isYouMessagePreset()) bubble.insertAdjacentHTML('beforeend', youMessageTail);
+      }
     });
   }
 
@@ -272,7 +280,7 @@ function applyTheme() {
   const leftRow = message.side === 'left' ? ' message-row-left' : '';
   const leftBubble = message.side === 'left' ? ' opposite-bubble' : '';
   const grouped = (previousSameSide ? ' grouped-prev' : '') + (nextSameSide ? ' grouped-next' : '');
-  const tail = nextSameSide ? '' : youMessageTail;
+  const tail = !nextSameSide && isYouMessagePreset() ? youMessageTail : '';
   if (message.type === 'image') {
     const src = imageSrc(message);
     return `<div class="message-row${leftRow}${grouped}" data-message-id="${esc(message.id)}"><div class="message-bubble image-bubble${leftBubble}" data-id="${esc(message.id)}"><img src="${src}" alt="图片消息" data-action="view-image" data-id="${esc(message.id)}">${tail}</div></div>`;
