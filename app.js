@@ -3,7 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.2.8';
+  const APP_VERSION = '9.3.0';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -20,6 +20,8 @@
   let screen = 'home';
   let searchQuery = '';
   let editingMessageId = null;
+  let pendingQuote = null;
+  let longPressTriggered = false;
   let installPrompt = null;
   let pendingJumpTo = null;
   let pendingScrollTop = null;
@@ -187,16 +189,35 @@
   function getConversationMessages(id) { return messages.filter(item => item.conversationId === id).sort((a, b) => a.createdAt - b.createdAt); }
   function previewFor(message) {
     if (!message) return '还没有消息，先记下第一个想法吧';
-    return message.type === 'image' ? '▧ 图片' : message.content.replace(/\s+/g, ' ').slice(0, 76);
+    if (message.type === 'image') return '▧ 图片';
+    const content = String(message.content || '').replace(/\s+/g, ' ').trim();
+    if (content) return content.slice(0, 76);
+    if (message.quote?.type === 'image') return '↪ 图片引用';
+    if (message.quote?.content) return '↪ ' + String(message.quote.content).replace(/\s+/g, ' ').slice(0, 70);
+    return '引用消息';
   }
   function imageSrc(message) {
     if (!imageUrls.has(message.id)) imageUrls.set(message.id, URL.createObjectURL(message.blob));
     return imageUrls.get(message.id);
   }
+  function quoteImageSrc(ownerId, quote) {
+    const blob = quote?.imageBlob || messages.find(item => item.id === quote?.messageId)?.blob;
+    if (!blob) return '';
+    const key = 'quote:' + ownerId;
+    if (!imageUrls.has(key)) imageUrls.set(key, URL.createObjectURL(blob));
+    return imageUrls.get(key);
+  }
   function revokeImage(id) {
     if (imageUrls.has(id)) {
       URL.revokeObjectURL(imageUrls.get(id));
       imageUrls.delete(id);
+    }
+  }
+  function revokeQuoteImage(ownerId) {
+    const key = 'quote:' + ownerId;
+    if (imageUrls.has(key)) {
+      URL.revokeObjectURL(imageUrls.get(key));
+      imageUrls.delete(key);
     }
   }
   async function updateConversationPreview(conversationId) {
@@ -278,7 +299,7 @@ function applyTheme() {
 
   function favoriteRow(message) {
     const conv = getConversation(message.conversationId);
-    const preview = message.type === 'image' ? '▧ 图片' : message.content;
+    const preview = previewFor(message);
     return `<div class="search-result" data-action="jump-message" data-id="${esc(message.id)}">
       <div class="result-icon">${esc(conv?.icon || '✦')}</div><div class="result-body"><div class="result-title">${esc(conv?.title || '已删除的对话')}</div><div class="result-snippet">${esc(preview.slice(0, 160))}</div></div>
       <button class="row-more" data-action="favorite-toggle" data-id="${esc(message.id)}" aria-label="取消收藏">${icon('heart')}</button>
@@ -287,7 +308,7 @@ function applyTheme() {
   function trashRow(item) {
     const msg = item.original;
     const conv = getConversation(msg.conversationId);
-    const preview = msg.type === 'image' ? '▧ 图片' : msg.content;
+    const preview = previewFor(msg);
     return `<div class="trash-item"><div class="result-title">${esc(conv?.title || '原对话已不存在')}</div><div class="result-snippet">${esc(preview.slice(0, 180))}</div><div class="trash-actions"><button data-action="restore-message" data-id="${esc(item.id)}">${icon('restore')} 恢复</button><button class="permanent" data-action="permanent-delete" data-id="${esc(item.id)}">彻底删除</button></div></div>`;
   }
 
@@ -316,19 +337,7 @@ function applyTheme() {
     if (!conv) { screen = 'home'; renderHome(); return; }
     const list = getConversationMessages(conv.id);
     const intro = `<div class="chat-intro"><div class="intro-avatar">${esc(conv.icon || '✦')}</div><strong>${esc(conv.title)}</strong><span>这是一个只属于这个话题的空间</span></div>`;
-    const messageHtml = list.map((message, index) => {
-  const previousSameSide = index > 0 && list[index - 1].side === message.side;
-  const nextSameSide = index < list.length - 1 && list[index + 1].side === message.side;
-  const leftRow = message.side === 'left' ? ' message-row-left' : '';
-  const leftBubble = message.side === 'left' ? ' opposite-bubble' : '';
-  const grouped = (previousSameSide ? ' grouped-prev' : '') + (nextSameSide ? ' grouped-next' : '');
-  const tail = !nextSameSide && isYouMessagePreset() ? youMessageTail : '';
-  if (message.type === 'image') {
-    const src = imageSrc(message);
-    return `<div class="message-row${leftRow}${grouped}" data-message-id="${esc(message.id)}"><div class="message-bubble image-bubble${leftBubble}" data-id="${esc(message.id)}"><img src="${src}" alt="图片消息" data-action="view-image" data-id="${esc(message.id)}">${tail}</div></div>`;
-  }
-  return `<div class="message-row${leftRow}${grouped}" data-message-id="${esc(message.id)}"><div class="message-bubble${leftBubble}" data-id="${esc(message.id)}"><span class="bubble-text">${esc(message.content)}</span>${tail}</div></div>`;
-}).join('');
+    const messageHtml = list.map((message, index) => renderMessageRowHtml(message, list, index)).join('');
     const chatHeaderHtml = isYouMessagePreset()
       ? `<header class="chat-header">
           <div class="chat-header-action">
@@ -362,6 +371,7 @@ function applyTheme() {
           </form>
         </footer>
       </section>`;
+    renderComposerQuotePreview();
     const input = document.getElementById('composer-input');
     if (editingMessageId) {
       const editing = messages.find(item => item.id === editingMessageId);
@@ -387,6 +397,122 @@ function applyTheme() {
     }
   }
 
+
+  function renderMessageRowHtml(message, list, index) {
+    const previousSameSide = index > 0 && list[index - 1].side === message.side;
+    const nextSameSide = index < list.length - 1 && list[index + 1].side === message.side;
+    const leftRow = message.side === 'left' ? ' message-row-left' : '';
+    const leftBubble = message.side === 'left' ? ' opposite-bubble' : '';
+    const grouped = (previousSameSide ? ' grouped-prev' : '') + (nextSameSide ? ' grouped-next' : '');
+    const tail = !nextSameSide && isYouMessagePreset() ? youMessageTail : '';
+    const quote = message.quote ? renderQuoteCard(message.id, message.quote, true) : '';
+
+    if (message.type === 'image') {
+      const src = imageSrc(message);
+      return '<div class="message-row' + leftRow + grouped + '" data-message-id="' + esc(message.id) + '">' +
+        quote + '<div class="message-bubble image-bubble' + leftBubble + '" data-id="' + esc(message.id) + '">' +
+        '<img src="' + src + '" alt="图片消息" data-action="view-image" data-id="' + esc(message.id) + '">' + tail +
+        '</div></div>';
+    }
+
+    const body = String(message.content || '');
+    const bubble = body
+      ? '<div class="message-bubble' + leftBubble + '" data-id="' + esc(message.id) + '"><span class="bubble-text">' + esc(body) + '</span>' + tail + '</div>'
+      : '<div class="message-bubble empty-bubble' + leftBubble + '" data-id="' + esc(message.id) + '">' + tail + '</div>';
+    return '<div class="message-row' + leftRow + grouped + '" data-message-id="' + esc(message.id) + '">' + quote + bubble + '</div>';
+  }
+
+  function renderQuoteCard(ownerId, quote, interactive = true) {
+    const sourceSide = quote?.side === 'left' ? 'quote-from-left' : 'quote-from-right';
+    let content = '';
+    if (quote?.type === 'image') {
+      const src = quoteImageSrc(ownerId, quote);
+      content = src
+        ? '<img class="message-quote-image" src="' + src + '" alt="被引用的图片">'
+        : '<span class="message-quote-image-fallback">图片</span>';
+    } else {
+      content = '<span class="message-quote-text">' + esc(quote?.content || '') + '</span>';
+    }
+
+    if (interactive) {
+      return '<button type="button" class="message-quote ' + sourceSide + '" data-action="jump-quote" data-id="' +
+        esc(ownerId) + '" data-target-id="' + esc(quote?.messageId || '') + '" aria-label="跳转到被引用的消息">' + content + '</button>';
+    }
+    return '<div class="message-quote ' + sourceSide + '">' + content + '</div>';
+  }
+
+  function renderComposerQuotePreview() {
+    const wrap = document.querySelector('.composer-wrap');
+    if (!wrap) return;
+    wrap.querySelector('.quote-composer-preview')?.remove();
+
+    const editing = editingMessageId ? messages.find(item => item.id === editingMessageId) : null;
+    const quote = pendingQuote || editing?.quote || null;
+    if (!quote) {
+      revokeQuoteImage('composer');
+      return;
+    }
+
+    const canCancel = Boolean(pendingQuote) && !editingMessageId;
+    const cancelButton = canCancel
+      ? '<button type="button" class="quote-cancel-btn" data-action="cancel-quote" aria-label="取消引用">' + icon('close') + '</button>'
+      : '';
+    wrap.insertAdjacentHTML('afterbegin',
+      '<div class="quote-composer-preview">' + renderQuoteCard('composer', quote, false) + cancelButton + '</div>');
+  }
+
+  function startQuoteMessage(id) {
+    const original = messages.find(item => item.id === id);
+    if (!original) return;
+    if (editingMessageId) {
+      closeModal();
+      toast('请先保存或取消当前修改，再引用其他消息');
+      return;
+    }
+
+    revokeQuoteImage('composer');
+    pendingQuote = {
+      messageId: original.id,
+      conversationId: original.conversationId,
+      type: original.type,
+      side: original.side,
+      createdAt: original.createdAt
+    };
+    if (original.type === 'image') pendingQuote.imageBlob = original.blob;
+    else pendingQuote.content = String(original.content || original.quote?.content || (original.quote?.type === 'image' ? '图片' : ''));
+
+    closeModal();
+    renderComposerQuotePreview();
+    updateSendButton();
+    document.getElementById('composer-input')?.focus();
+  }
+
+  function jumpToQuotedMessage(ownerId, targetId) {
+    const owner = messages.find(item => item.id === ownerId);
+    const quote = owner?.quote;
+    const target = messages.find(item => item.id === targetId || item.id === quote?.messageId);
+    closeModal();
+
+    if (!target) {
+      toast('原消息已删除，引用内容仍然保留');
+      return;
+    }
+
+    if (screen === 'chat' && currentConversationId === target.conversationId) {
+      scrollToMessage(target.id, 'smooth', true);
+      return;
+    }
+
+    currentConversationId = target.conversationId;
+    pendingJumpTo = target.id;
+    pendingScrollTop = null;
+    pendingQuote = null;
+    revokeQuoteImage('composer');
+    editingMessageId = null;
+    screen = 'chat';
+    render();
+  }
+
   function resizeComposer(input) {
     if (!input) return;
     input.style.height = 'auto';
@@ -395,7 +521,10 @@ function applyTheme() {
   function updateSendButton() {
     const input = document.getElementById('composer-input');
     const button = document.getElementById('send-button');
-    if (input && button) button.disabled = !input.value.trim();
+    if (input && button) {
+      const hasText = Boolean(input.value.trim());
+      button.disabled = editingMessageId ? !hasText : (!hasText && !pendingQuote);
+    }
   }
 
   function scrollToMessage(id, behavior = 'smooth', highlight = false) {
@@ -437,15 +566,24 @@ function applyTheme() {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return emptyState('搜索所有想法', '输入一个词语，找回曾经写下的消息。', 'search');
     const matchingConversations = conversations.filter(conv => conv.title.toLowerCase().includes(q));
-    const matchingMessages = messages.filter(message => message.type === 'text' && message.content.toLowerCase().includes(q));
+    const matchingMessages = messages.filter(message => {
+      const body = message.type === 'text' ? String(message.content || '').toLowerCase() : '';
+      const quoted = message.quote?.type === 'text' ? String(message.quote.content || '').toLowerCase() : '';
+      return body.includes(q) || quoted.includes(q);
+    });
     const results = [];
     matchingConversations.forEach(conv => results.push(`<div class="search-result" data-action="open-chat" data-id="${esc(conv.id)}"><div class="result-icon">${esc(conv.icon || '✦')}</div><div class="result-body"><div class="result-title">对话 · ${highlighted(conv.title, q)}</div><div class="result-snippet">${esc(conv.lastMessagePreview || '还没有消息')}</div></div></div>`));
     matchingMessages.forEach(message => {
       const conv = getConversation(message.conversationId);
       if (!conv) return;
-      const index = message.content.toLowerCase().indexOf(q);
+      const bodyText = message.type === 'text' ? String(message.content || '') : '';
+      const quotedText = message.quote?.type === 'text' ? String(message.quote.content || '') : '';
+      const matchedText = bodyText.toLowerCase().includes(q) ? bodyText : quotedText;
+      const index = matchedText.toLowerCase().indexOf(q);
       const start = Math.max(0, index - 42);
-      const excerpt = `${start > 0 ? '…' : ''}${message.content.slice(start, start + 130)}${start + 130 < message.content.length ? '…' : ''}`;
+      const excerpt = (matchedText === quotedText && quotedText ? '引用：' : '') +
+        (start > 0 ? '…' : '') + matchedText.slice(start, start + 130) +
+        (start + 130 < matchedText.length ? '…' : '');
       results.push(`<div class="search-result" data-action="jump-message" data-id="${esc(message.id)}"><div class="result-icon">${esc(conv.icon || '✦')}</div><div class="result-body"><div class="result-title">${esc(conv.title)}</div><div class="result-snippet">${highlighted(excerpt, searchQuery.trim())}</div></div></div>`);
     });
     return results.length ? `<div class="section-heading"><span>搜索结果</span><span>${results.length} 条</span></div><div class="list-card">${results.join('')}</div>` : emptyState('没有找到相关内容', '试试更短的关键词，或换一个说法。', 'search');
@@ -489,6 +627,7 @@ function applyTheme() {
     if (!message) return;
     const favoriteLabel = message.favorite ? '取消收藏' : '收藏这条消息';
     const body = `<div class="menu-list">
+      <button class="menu-item" data-action="quote-message" data-id="${esc(id)}">${icon('reply')}引用消息</button>
       ${message.type === 'text' ? `<button class="menu-item" data-action="edit-message" data-id="${esc(id)}">${icon('edit')}修改消息</button><button class="menu-item" data-action="copy-message" data-id="${esc(id)}">${icon('copy')}复制文字</button>` : `<button class="menu-item" data-action="view-image" data-id="${esc(id)}">${icon('image')}查看图片</button>`}
       <button class="menu-item" data-action="toggle-message-side" data-id="${esc(id)}">
   ${icon('reply')}${message.side === 'left' ? '移到右侧' : '移到左侧'}
@@ -529,14 +668,11 @@ async function sendTextMessage(side = 'right') {
   if (!input || !currentConversationId) return;
 
   const content = safeText(input.value);
-  if (!content) return;
-
+  if (!content && !pendingQuote) return;
   const conv = getConversation(currentConversationId);
 
-  // 编辑历史消息
   if (editingMessageId) {
     const old = messages.find(item => item.id === editingMessageId);
-
     if (old) {
       old.content = content;
       old.side = side;
@@ -548,43 +684,40 @@ async function sendTextMessage(side = 'right') {
     await refreshData();
     await updateConversationPreview(currentConversationId);
 
-    // 只更新原消息，不重建输入框
-    const row = document.querySelector(
-      `[data-message-id="${CSS.escape(old.id)}"]`
-    );
-
-    if (row) {
-      row.classList.toggle('message-row-left', side === 'left');
-
-      const bubble = row.querySelector('.message-bubble');
-      if (bubble) {
-        bubble.classList.toggle('opposite-bubble', side === 'left');
-        let bubbleText = bubble.querySelector('.bubble-text');
-        if (!bubbleText) {
-          bubbleText = document.createElement('span');
-          bubbleText.className = 'bubble-text';
-          bubble.prepend(bubbleText);
+    if (old) {
+      const row = document.querySelector('[data-message-id="' + CSS.escape(old.id) + '"]');
+      if (row) {
+        row.classList.toggle('message-row-left', side === 'left');
+        const bubble = row.querySelector('.message-bubble');
+        if (bubble) {
+          bubble.classList.toggle('opposite-bubble', side === 'left');
+          bubble.classList.remove('empty-bubble');
+          let bubbleText = bubble.querySelector('.bubble-text');
+          if (!bubbleText) {
+            bubbleText = document.createElement('span');
+            bubbleText.className = 'bubble-text';
+            bubble.prepend(bubbleText);
+          }
+          bubbleText.textContent = content;
         }
-        bubbleText.textContent = content;
+        syncMessageGrouping(
+          document.getElementById('messages-area'),
+          getConversationMessages(currentConversationId)
+        );
       }
-      syncMessageGrouping(
-        document.getElementById('messages-area'),
-        getConversationMessages(currentConversationId)
-      );
     }
 
     document.querySelector('.editing-banner')?.remove();
-
+    renderComposerQuotePreview();
     input.value = '';
     resizeComposer(input);
     updateSendButton();
-
     toast('已保存修改');
     return;
   }
 
-  // 新建消息
   const now = Date.now();
+  const quote = pendingQuote ? { ...pendingQuote } : null;
   const message = {
     id: uid(),
     conversationId: currentConversationId,
@@ -593,16 +726,12 @@ async function sendTextMessage(side = 'right') {
     side,
     favorite: false,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
+    ...(quote ? { quote } : {})
   };
 
-  const tx = db.transaction(
-    ['messages', 'conversations'],
-    'readwrite'
-  );
-
+  const tx = db.transaction(['messages', 'conversations'], 'readwrite');
   tx.objectStore('messages').put(message);
-
   if (conv) {
     conv.lastMessagePreview = previewFor(message);
     conv.updatedAt = now;
@@ -610,55 +739,64 @@ async function sendTextMessage(side = 'right') {
   }
 
   await txDone(tx);
+  if (quote) {
+    pendingQuote = null;
+    revokeQuoteImage('composer');
+  }
   await refreshData();
 
-  // 只向聊天区域添加新消息
   const area = document.getElementById('messages-area');
-
   if (area) {
-    const row = document.createElement('div');
-    row.className = 'message-row' +
-      (side === 'left' ? ' message-row-left' : '');
-    row.dataset.messageId = message.id;
-
-    const bubble = document.createElement('div');
-    bubble.className = 'message-bubble' +
-      (side === 'left' ? ' opposite-bubble' : '');
-    bubble.dataset.id = message.id;
-    const bubbleText = document.createElement('span');
-    bubbleText.className = 'bubble-text';
-    bubbleText.textContent = content;
-    bubble.appendChild(bubbleText);
-    bubble.insertAdjacentHTML('beforeend', youMessageTail);
-
-    row.appendChild(bubble);
-    area.appendChild(row);
-    syncMessageGrouping(area, getConversationMessages(currentConversationId));
+    const currentList = getConversationMessages(currentConversationId);
+    const index = currentList.findIndex(item => item.id === message.id);
+    area.insertAdjacentHTML('beforeend', renderMessageRowHtml(message, currentList, index));
+    syncMessageGrouping(area, currentList);
     area.scrollTop = area.scrollHeight;
   }
 
-  // 清空输入框，但保留原输入框和焦点
   input.value = '';
   resizeComposer(input);
+  renderComposerQuotePreview();
   updateSendButton();
 }
 
   async function sendImageFiles(files) {
     if (!currentConversationId || !files?.length) return;
     const conv = getConversation(currentConversationId);
+    let quoteForNextImage = pendingQuote ? { ...pendingQuote } : null;
+    let sentAny = false;
+
     for (const file of [...files]) {
       if (!file.type.startsWith('image/')) continue;
       const now = Date.now();
-      const message = { id: uid(), conversationId: currentConversationId, type: 'image', blob: file.slice(0, file.size, file.type), side: 'right', favorite: false, createdAt: now, updatedAt: now };
+      const message = {
+        id: uid(),
+        conversationId: currentConversationId,
+        type: 'image',
+        blob: file.slice(0, file.size, file.type),
+        side: 'right',
+        favorite: false,
+        createdAt: now,
+        updatedAt: now,
+        ...(quoteForNextImage ? { quote: quoteForNextImage } : {})
+      };
+      quoteForNextImage = null;
+      sentAny = true;
+
       const tx = db.transaction(['messages', 'conversations'], 'readwrite');
       tx.objectStore('messages').put(message);
       if (conv) {
-        conv.lastMessagePreview = '▧ 图片';
+        conv.lastMessagePreview = previewFor(message);
         conv.updatedAt = now;
         tx.objectStore('conversations').put(conv);
       }
       await txDone(tx);
-      if (conv) { conv.updatedAt = now; conv.lastMessagePreview = '▧ 图片'; }
+    }
+
+    if (!sentAny) return;
+    if (pendingQuote) {
+      pendingQuote = null;
+      revokeQuoteImage('composer');
     }
     await refreshData();
     render();
@@ -670,6 +808,8 @@ async function sendTextMessage(side = 'right') {
     const area = document.getElementById('messages-area');
     pendingScrollTop = area ? area.scrollTop : null;
     pendingJumpTo = null;
+    pendingQuote = null;
+    revokeQuoteImage('composer');
     currentConversationId = message.conversationId;
     editingMessageId = id;
     screen = 'chat';
@@ -685,6 +825,7 @@ async function sendTextMessage(side = 'right') {
     tx.objectStore('messages').delete(id);
     await txDone(tx);
     revokeImage(id);
+    revokeQuoteImage(id);
     await refreshData();
     await updateConversationPreview(message.conversationId);
     closeModal();
@@ -737,7 +878,10 @@ async function sendTextMessage(side = 'right') {
     const tx = db.transaction('trash', 'readwrite');
     tx.objectStore('trash').delete(trashId);
     await txDone(tx);
-    if (item.original?.id) revokeImage(item.original.id);
+    if (item.original?.id) {
+      revokeImage(item.original.id);
+      revokeQuoteImage(item.original.id);
+    }
     await refreshData();
     render();
     toast('已彻底删除');
@@ -746,7 +890,10 @@ async function sendTextMessage(side = 'right') {
     const tx = db.transaction('trash', 'readwrite');
     tx.objectStore('trash').clear();
     await txDone(tx);
-    for (const item of trashItems) if (item.original?.id) revokeImage(item.original.id);
+    for (const item of trashItems) if (item.original?.id) {
+      revokeImage(item.original.id);
+      revokeQuoteImage(item.original.id);
+    }
     await refreshData();
     render();
     toast('回收站已清空');
@@ -761,6 +908,7 @@ async function sendTextMessage(side = 'right') {
       request.result.filter(item => item.conversationId === id).forEach(item => {
         store.delete(item.id);
         revokeImage(item.id);
+        revokeQuoteImage(item.id);
       });
     };
     await done;
@@ -785,11 +933,11 @@ async function sendTextMessage(side = 'right') {
     const message = messages.find(item => item.id === id);
     if (!message) return;
     try {
-      await navigator.clipboard.writeText(message.content || '');
+      await navigator.clipboard.writeText(message.content || message.quote?.content || '');
       toast('已复制');
     } catch {
       const textarea = document.createElement('textarea');
-      textarea.value = message.content || '';
+      textarea.value = message.content || message.quote?.content || '';
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand('copy');
@@ -816,7 +964,13 @@ async function sendTextMessage(side = 'right') {
     if (!conv) return;
     const list = getConversationMessages(id);
     const lines = [`# ${conv.title}`, ''];
-    for (const message of list) lines.push(message.type === 'image' ? '【图片】' : message.content, '');
+    for (const message of list) {
+      if (message.quote) {
+        const quotedContent = message.quote.type === 'image' ? '图片' : (message.quote.content || '');
+        lines.push('【引用】' + quotedContent);
+      }
+      lines.push(message.type === 'image' ? '【图片】' : (message.content || ''), '');
+    }
     downloadFile(`${safeFilename(conv.title)}.txt`, lines.join('\n'), 'text/plain;charset=utf-8');
     closeModal();
     toast('TXT 文件已生成');
@@ -836,6 +990,10 @@ async function sendTextMessage(side = 'right') {
       copy.imageDataUrl = await blobToDataUrl(copy.blob);
       delete copy.blob;
     }
+    if (copy.quote?.imageBlob instanceof Blob) {
+      copy.quote = { ...copy.quote, imageDataUrl: await blobToDataUrl(copy.quote.imageBlob) };
+      delete copy.quote.imageBlob;
+    }
     if (copy.original) copy.original = await serializeRecord(copy.original);
     return copy;
   }
@@ -853,6 +1011,10 @@ async function sendTextMessage(side = 'right') {
     if (copy.imageDataUrl) {
       copy.blob = dataUrlToBlob(copy.imageDataUrl);
       delete copy.imageDataUrl;
+    }
+    if (copy.quote?.imageDataUrl) {
+      copy.quote = { ...copy.quote, imageBlob: dataUrlToBlob(copy.quote.imageDataUrl) };
+      delete copy.quote.imageDataUrl;
     }
     if (copy.original) copy.original = deserializeRecord(copy.original);
     return copy;
@@ -1015,9 +1177,9 @@ async function sendTextMessage(side = 'right') {
     else if (action === 'new-conversation') openConversationForm();
     else if (action === 'open-search') { searchQuery = ''; screen = 'search'; render(); }
     else if (action === 'clear-search') { searchQuery = ''; const input = document.getElementById('global-search'); if (input) { input.value = ''; input.focus(); } refreshSearchResults(); }
-    else if (action === 'back-home') { screen = 'home'; editingMessageId = null; render(); }
-    else if (action === 'change-tab') { activeView = target.dataset.tab; screen = 'home'; editingMessageId = null; render(); }
-    else if (action === 'open-chat') { currentConversationId = id; screen = 'chat'; editingMessageId = null; render(); }
+    else if (action === 'back-home') { screen = 'home'; editingMessageId = null; pendingQuote = null; revokeQuoteImage('composer'); render(); }
+    else if (action === 'change-tab') { activeView = target.dataset.tab; screen = 'home'; editingMessageId = null; pendingQuote = null; revokeQuoteImage('composer'); render(); }
+    else if (action === 'open-chat') { currentConversationId = id; screen = 'chat'; editingMessageId = null; pendingQuote = null; revokeQuoteImage('composer'); render(); }
     else if (action === 'conversation-menu') { openConversationMenu(id); }
     else if (action === 'scroll-chat-top') scrollChatToEdge('top');
     else if (action === 'scroll-chat-bottom') scrollChatToEdge('bottom');
@@ -1025,6 +1187,15 @@ async function sendTextMessage(side = 'right') {
     else if (action === 'toggle-pin') await togglePin(id);
     else if (action === 'export-conversation') await exportConversation(id);
     else if (action === 'delete-conversation') openDeleteConversationConfirm(id);
+    else if (action === 'quote-message') startQuoteMessage(id);
+    else if (action === 'jump-quote') { if (longPressTriggered) { longPressTriggered = false; return; } jumpToQuotedMessage(id, target.dataset.targetId); }
+    else if (action === 'cancel-quote') {
+      pendingQuote = null;
+      revokeQuoteImage('composer');
+      renderComposerQuotePreview();
+      updateSendButton();
+      document.getElementById('composer-input')?.focus();
+    }
     else if (action === 'edit-message') await beginEditMessage(id);
     else if (action === 'copy-message') await copyMessage(id);
     else if (action === 'favorite-toggle') await toggleFavorite(id);
@@ -1038,7 +1209,16 @@ async function sendTextMessage(side = 'right') {
     }
     else if (action === 'jump-message') {
       const msg = messages.find(item => item.id === id);
-      if (msg) { currentConversationId = msg.conversationId; pendingJumpTo = id; pendingScrollTop = null; screen = 'chat'; editingMessageId = null; render(); }
+      if (msg) {
+        currentConversationId = msg.conversationId;
+        pendingJumpTo = id;
+        pendingScrollTop = null;
+        screen = 'chat';
+        editingMessageId = null;
+        pendingQuote = null;
+        revokeQuoteImage('composer');
+        render();
+      }
     }
     else if (action === 'send-opposite') await sendTextMessage('left');
     else if (action === 'toggle-message-side') await toggleMessageSide(id);
@@ -1144,11 +1324,13 @@ async function sendTextMessage(side = 'right') {
   event.preventDefault();
   return;
 }
-    const bubble = event.target.closest('.message-bubble[data-id]');
+    const bubble = event.target.closest('.message-bubble[data-id], .message-quote[data-id]');
     if (!bubble) return;
     const id = bubble.dataset.id;
+    longPressTriggered = false;
     longPressTimer = setTimeout(() => {
       longPressTimer = null;
+      longPressTriggered = true;
       openMessageMenu(id);
     }, 520);
   });
