@@ -158,6 +158,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .setting-action { border: 0; background: var(--surface-2); border-radius: 12px; color: var(--text); padding: 9px 12px; font-size: 11px; font-weight: 650; cursor: pointer; white-space: nowrap; }
 .setting-select { border: 1px solid var(--line); border-radius: 11px; padding: 8px 10px; background: var(--surface-2); color: var(--text); font-size: 12px; }
 .about-card { padding: 17px; color: var(--muted); font-size: 11px; line-height: 1.7; }
+.about-heading { display: flex; align-items: baseline; gap: 7px; margin-bottom: 3px; }
+.about-version { color: var(--muted-2); font-size: 10px; font-weight: 550; letter-spacing: .15px; }
 /* modals and feedback */
 .modal-backdrop { position: fixed; inset: 0; z-index: 20; background: rgba(10,12,10,.34); display: flex; justify-content: center; align-items: flex-end; padding: 16px; padding-bottom: max(16px, env(safe-area-inset-bottom)); backdrop-filter: blur(4px); }
 .modal { width: min(100%, 460px); max-height: min(82dvh, 650px); overflow-y: auto; border-radius: 25px; background: var(--surface); box-shadow: var(--shadow); padding: 20px; animation: rise .18s ease-out; }
