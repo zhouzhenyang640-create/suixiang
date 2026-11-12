@@ -51,6 +51,8 @@
     empty: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v13H4zM8 6.5V4h8v2.5M9 11h6m-6 4h4"/></svg>'
   };
 
+  const youMessageTail = '<svg class="youmessage-tail" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M 14.5 0 C 14.5 6 15.6 17.3 19 19.5 Q 19.6 20.1 18.4 20.6 Q 13.4 20.1 8.5 15.5 L 2 14 L 2 0 Z" fill="currentColor"/></svg>';
+
   function icon(name) { return icons[name] || icons.book; }
   function uid() { return (crypto.randomUUID ? crypto.randomUUID() : `id_${Date.now()}_${Math.random().toString(36).slice(2)}`); }
   function esc(value) {
@@ -252,9 +254,9 @@ function applyTheme() {
   const leftBubble = message.side === 'left' ? ' opposite-bubble' : '';
   if (message.type === 'image') {
     const src = imageSrc(message);
-    return `<div class="message-row${leftRow}" data-message-id="${esc(message.id)}"><div class="message-bubble image-bubble${leftBubble}" data-id="${esc(message.id)}"><img src="${src}" alt="图片消息" data-action="view-image" data-id="${esc(message.id)}"></div></div>`;
+    return `<div class="message-row${leftRow}" data-message-id="${esc(message.id)}"><div class="message-bubble image-bubble${leftBubble}" data-id="${esc(message.id)}"><img src="${src}" alt="图片消息" data-action="view-image" data-id="${esc(message.id)}">${youMessageTail}</div></div>`;
   }
-  return `<div class="message-row${leftRow}" data-message-id="${esc(message.id)}"><div class="message-bubble${leftBubble}" data-id="${esc(message.id)}">${esc(message.content)}</div></div>`;
+  return `<div class="message-row${leftRow}" data-message-id="${esc(message.id)}"><div class="message-bubble${leftBubble}" data-id="${esc(message.id)}"><span class="bubble-text">${esc(message.content)}</span>${youMessageTail}</div></div>`;
 }).join('');
     app.innerHTML = `
       <section class="chat-screen">
@@ -449,7 +451,13 @@ async function sendTextMessage(side = 'right') {
       const bubble = row.querySelector('.message-bubble');
       if (bubble) {
         bubble.classList.toggle('opposite-bubble', side === 'left');
-        bubble.textContent = content;
+        let bubbleText = bubble.querySelector('.bubble-text');
+        if (!bubbleText) {
+          bubbleText = document.createElement('span');
+          bubbleText.className = 'bubble-text';
+          bubble.prepend(bubbleText);
+        }
+        bubbleText.textContent = content;
       }
     }
 
@@ -505,7 +513,11 @@ async function sendTextMessage(side = 'right') {
     bubble.className = 'message-bubble' +
       (side === 'left' ? ' opposite-bubble' : '');
     bubble.dataset.id = message.id;
-    bubble.textContent = content;
+    const bubbleText = document.createElement('span');
+    bubbleText.className = 'bubble-text';
+    bubbleText.textContent = content;
+    bubble.appendChild(bubbleText);
+    bubble.insertAdjacentHTML('beforeend', youMessageTail);
 
     row.appendChild(bubble);
     area.appendChild(row);
