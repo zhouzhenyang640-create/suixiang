@@ -3,7 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.2.7';
+  const APP_VERSION = '9.2.8';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -42,6 +42,7 @@
     dots: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>',
     back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
     send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>',
+    arrowDown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-6-6 6 6 6-6"/></svg>',
     image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>',
     reply: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 7 7v2"/></svg>',
     sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>',
@@ -409,6 +410,14 @@ function applyTheme() {
     }
   }
 
+  function scrollChatToEdge(edge) {
+    const area = document.getElementById('messages-area');
+    if (!area) return;
+    const top = edge === 'top' ? 0 : Math.max(0, area.scrollHeight - area.clientHeight);
+    closeModal();
+    area.scrollTo({ top, behavior: 'smooth' });
+  }
+
   function renderSearch() {
     app.innerHTML = `
       <header class="topbar"><div style="display:flex;align-items:center;gap:8px;flex:1"><button class="icon-btn" data-action="back-home" aria-label="返回">${icon('back')}</button><div><div class="topbar-title" style="font-size:22px">搜索</div><div class="topbar-subtitle">在所有对话中查找想法</div></div></div></header>
@@ -463,7 +472,12 @@ function applyTheme() {
   function openConversationMenu(id) {
     const conv = getConversation(id);
     if (!conv) return;
+    const scrollActions = screen === 'chat' && currentConversationId === id ? `
+      <button class="menu-item" data-action="scroll-chat-top">${icon('back')}回到顶部</button>
+      <button class="menu-item" data-action="scroll-chat-bottom">${icon('arrowDown')}回到底部</button>
+    ` : '';
     showModal(conv.title, `<div class="menu-list">
+      ${scrollActions}
       <button class="menu-item" data-action="rename-conversation" data-id="${esc(id)}">${icon('edit')}重命名 / 更换图标</button>
       <button class="menu-item" data-action="toggle-pin" data-id="${esc(id)}">${icon('pin')}${conv.pinned ? '取消置顶' : '置顶对话'}</button>
       <button class="menu-item" data-action="export-conversation" data-id="${esc(id)}">${icon('download')}导出为 TXT</button>
@@ -1005,6 +1019,8 @@ async function sendTextMessage(side = 'right') {
     else if (action === 'change-tab') { activeView = target.dataset.tab; screen = 'home'; editingMessageId = null; render(); }
     else if (action === 'open-chat') { currentConversationId = id; screen = 'chat'; editingMessageId = null; render(); }
     else if (action === 'conversation-menu') { openConversationMenu(id); }
+    else if (action === 'scroll-chat-top') scrollChatToEdge('top');
+    else if (action === 'scroll-chat-bottom') scrollChatToEdge('bottom');
     else if (action === 'rename-conversation') { closeModal(); openConversationForm(getConversation(id)); }
     else if (action === 'toggle-pin') await togglePin(id);
     else if (action === 'export-conversation') await exportConversation(id);
