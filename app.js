@@ -473,7 +473,7 @@ function applyTheme() {
     const conv = getConversation(id);
     if (!conv) return;
     const scrollActions = screen === 'chat' && currentConversationId === id ? `
-      <button class="menu-item" data-action="scroll-chat-top">${icon('back')}回到顶部</button>
+      <button class="menu-item" data-action="scroll-chat-top">${icon('send')}回到顶部</button>
       <button class="menu-item" data-action="scroll-chat-bottom">${icon('arrowDown')}回到底部</button>
     ` : '';
     showModal(conv.title, `<div class="menu-list">
