@@ -360,8 +360,8 @@
 :root[data-preset="youmessage"] {
   --chat-canvas: #F2F2F7;
   --chat-nav-gradient-top: rgba(255, 255, 255, 1);
-  --chat-nav-gradient-mid: rgba(255, 255, 255, .92);
-  --chat-nav-gradient-soft: rgba(255, 255, 255, .54);
+  --chat-nav-gradient-mid: rgba(255, 255, 255, .76);
+  --chat-nav-gradient-soft: rgba(255, 255, 255, .28);
   --chat-nav-button-fill: rgba(255, 255, 255, .70);
   --chat-nav-button-shadow: 0 2px 9px rgba(0, 0, 0, .13);
 }
@@ -369,8 +369,8 @@
 :root[data-preset="youmessage"][data-theme="dark"] {
   --chat-canvas: #1C1C1E;
   --chat-nav-gradient-top: rgba(0, 0, 0, 1);
-  --chat-nav-gradient-mid: rgba(0, 0, 0, .94);
-  --chat-nav-gradient-soft: rgba(0, 0, 0, .56);
+  --chat-nav-gradient-mid: rgba(0, 0, 0, .76);
+  --chat-nav-gradient-soft: rgba(0, 0, 0, .28);
   --chat-nav-button-fill: rgba(255, 255, 255, .15);
   --chat-nav-button-shadow: 0 2px 10px rgba(0, 0, 0, .28);
 }
@@ -379,8 +379,8 @@
   :root[data-preset="youmessage"][data-theme="system"] {
     --chat-canvas: #1C1C1E;
     --chat-nav-gradient-top: rgba(0, 0, 0, 1);
-    --chat-nav-gradient-mid: rgba(0, 0, 0, .94);
-    --chat-nav-gradient-soft: rgba(0, 0, 0, .56);
+    --chat-nav-gradient-mid: rgba(0, 0, 0, .76);
+    --chat-nav-gradient-soft: rgba(0, 0, 0, .28);
     --chat-nav-button-fill: rgba(255, 255, 255, .15);
     --chat-nav-button-shadow: 0 2px 10px rgba(0, 0, 0, .28);
   }
@@ -400,12 +400,12 @@
   top: calc(0px - env(safe-area-inset-top));
   left: 0;
   right: 0;
-  height: calc(158px + env(safe-area-inset-top));
+  height: calc(66px + env(safe-area-inset-top) + env(safe-area-inset-top));
   background: linear-gradient(
     to bottom,
     var(--chat-nav-gradient-top) 0%,
-    var(--chat-nav-gradient-mid) 32%,
-    var(--chat-nav-gradient-soft) 68%,
+    var(--chat-nav-gradient-mid) 24%,
+    var(--chat-nav-gradient-soft) 62%,
     transparent 100%
   );
   pointer-events: none;
