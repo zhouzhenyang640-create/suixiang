@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suixiang-shell-v9.1.1';
+const CACHE_NAME = 'suixiang-shell-v9.1.2';
 const APP_SHELL = [
   './',
   './index.html',
