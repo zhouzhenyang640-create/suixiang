@@ -113,7 +113,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .message-row { display: flex; flex-direction: column; align-items: flex-end; width: 100%; }
 .message-row-left { align-items: flex-start; }
 /* Default theme C remains 9px: A = 2C, B = C. */
-.message-row.has-quote { margin-top: 9px; }
+.message-row.has-quote { margin-top: 0; }
 .message-bubble.opposite-bubble {
   background: var(--bubble-other);
   color: var(--bubble-other-text);
