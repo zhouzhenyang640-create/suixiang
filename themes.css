@@ -354,15 +354,11 @@
   border-top-left-radius: 7px;
 }
 
-/* Keep the original horizontal chat header for the default preset.
-   The wrappers are present in app.js for both themes, but collapse in default mode. */
-:root:not([data-preset="youmessage"]) .chat-header-action,
-:root:not([data-preset="youmessage"]) .chat-header-center {
-  display: contents;
-}
+/* The default preset uses its original, unwrapped chat-header markup. */
 
 /* YouMessage acrylic chat navigation: approved final layout */
 :root[data-preset="youmessage"] {
+  --chat-canvas: #F2F2F7;
   --chat-nav-gradient-top: rgba(255, 255, 255, 1);
   --chat-nav-gradient-mid: rgba(255, 255, 255, .92);
   --chat-nav-gradient-soft: rgba(255, 255, 255, .54);
@@ -371,6 +367,7 @@
 }
 
 :root[data-preset="youmessage"][data-theme="dark"] {
+  --chat-canvas: #1C1C1E;
   --chat-nav-gradient-top: rgba(0, 0, 0, 1);
   --chat-nav-gradient-mid: rgba(0, 0, 0, .94);
   --chat-nav-gradient-soft: rgba(0, 0, 0, .56);
@@ -380,6 +377,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root[data-preset="youmessage"][data-theme="system"] {
+    --chat-canvas: #1C1C1E;
     --chat-nav-gradient-top: rgba(0, 0, 0, 1);
     --chat-nav-gradient-mid: rgba(0, 0, 0, .94);
     --chat-nav-gradient-soft: rgba(0, 0, 0, .56);
@@ -389,22 +387,13 @@
 }
 
 /* Header layout: side actions + centered conversation identity */
-:root[data-preset="youmessage"] .chat-header {
+:root[data-preset="youmessage"] .chat-screen {
   position: relative;
-  z-index: 2;
   isolation: isolate;
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 42px;
-  align-items: start;
-  gap: 0;
-  flex: 0 0 auto;
-  padding: calc(env(safe-area-inset-top) + 12px) 15px 12px;
-  border: 0;
-  background: transparent;
-  overflow: visible;
+  background: var(--chat-canvas);
 }
 
-:root[data-preset="youmessage"] .chat-header::before {
+:root[data-preset="youmessage"] .chat-screen::before {
   content: "";
   position: absolute;
   z-index: 0;
@@ -422,10 +411,31 @@
   pointer-events: none;
 }
 
+:root[data-preset="youmessage"] .chat-header {
+  position: relative;
+  z-index: 1;
+  isolation: auto;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  align-items: start;
+  gap: 0;
+  flex: 0 0 auto;
+  padding: calc(env(safe-area-inset-top) + 12px) 15px 12px;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
 :root[data-preset="youmessage"] .chat-header-action,
 :root[data-preset="youmessage"] .chat-header-center {
   position: relative;
   z-index: 1;
+}
+
+:root[data-preset="youmessage"] .messages {
+  position: relative;
+  z-index: 1;
+  background: transparent;
 }
 
 :root[data-preset="youmessage"] .chat-header-action {
