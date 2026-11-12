@@ -3,7 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.2.1';
+  const APP_VERSION = '9.2.0';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -151,9 +151,6 @@
   }
   function getConversation(id) { return conversations.find(item => item.id === id); }
   function getConversationMessages(id) { return messages.filter(item => item.conversationId === id).sort((a, b) => a.createdAt - b.createdAt); }
-  function avatarMarkup(value) {
-    return `<span class="avatar-glyph" aria-hidden="true"><span class="avatar-glyph-text">${esc(value || '✦')}</span></span>`;
-  }
   function previewFor(message) {
     if (!message) return '还没有消息，先记下第一个想法吧';
     return message.type === 'image' ? '▧ 图片' : message.content.replace(/\s+/g, ' ').slice(0, 76);
@@ -217,7 +214,7 @@ function applyTheme() {
       const list = sortedConversations();
       body = list.length ? `<div class="section-heading"><span>所有对话</span><span>${list.length} 个</span></div><div class="list-card">${list.map(conv => `
         <div class="conversation-row" data-action="open-chat" data-id="${esc(conv.id)}" role="button" tabindex="0">
-          <div class="avatar">${avatarMarkup(conv.icon)}</div>
+          <div class="avatar">${esc(conv.icon || '✦')}</div>
           <div class="conversation-main"><div class="conversation-titleline"><span class="conversation-title">${esc(conv.title)}</span>${conv.pinned ? `<span class="pin-mark">${icon('pin')}</span>` : ''}</div><div class="conversation-preview">${esc(conv.lastMessagePreview || '还没有消息，先记下第一个想法吧')}</div></div>
           <button class="row-more" data-action="conversation-menu" data-id="${esc(conv.id)}" aria-label="对话选项">${icon('dots')}</button>
         </div>`).join('')}</div>` : emptyState('还没有对话', '创建一个话题窗口，把零散的想法放进去。', 'chats');
@@ -249,7 +246,7 @@ function applyTheme() {
     const conv = getConversation(message.conversationId);
     const preview = message.type === 'image' ? '▧ 图片' : message.content;
     return `<div class="search-result" data-action="jump-message" data-id="${esc(message.id)}">
-      <div class="result-icon">${avatarMarkup(conv?.icon)}</div><div class="result-body"><div class="result-title">${esc(conv?.title || '已删除的对话')}</div><div class="result-snippet">${esc(preview.slice(0, 160))}</div></div>
+      <div class="result-icon">${esc(conv?.icon || '✦')}</div><div class="result-body"><div class="result-title">${esc(conv?.title || '已删除的对话')}</div><div class="result-snippet">${esc(preview.slice(0, 160))}</div></div>
       <button class="row-more" data-action="favorite-toggle" data-id="${esc(message.id)}" aria-label="取消收藏">${icon('heart')}</button>
     </div>`;
   }
@@ -284,7 +281,7 @@ function applyTheme() {
     const conv = getConversation(currentConversationId);
     if (!conv) { screen = 'home'; renderHome(); return; }
     const list = getConversationMessages(conv.id);
-    const intro = `<div class="chat-intro"><div class="intro-avatar">${avatarMarkup(conv.icon)}</div><strong>${esc(conv.title)}</strong><span>这是一个只属于这个话题的空间</span></div>`;
+    const intro = `<div class="chat-intro"><div class="intro-avatar">${esc(conv.icon || '✦')}</div><strong>${esc(conv.title)}</strong><span>这是一个只属于这个话题的空间</span></div>`;
     const messageHtml = list.map((message, index) => {
   const previousSameSide = index > 0 && list[index - 1].side === message.side;
   const nextSameSide = index < list.length - 1 && list[index + 1].side === message.side;
@@ -304,7 +301,7 @@ function applyTheme() {
             <button class="icon-btn back-btn" data-action="back-home" aria-label="返回">${icon('back')}</button>
           </div>
           <div class="chat-header-center">
-            <div class="avatar">${avatarMarkup(conv.icon)}</div>
+            <div class="avatar">${esc(conv.icon || '✦')}</div>
             <div class="chat-header-title">${esc(conv.title)}</div>
           </div>
           <div class="chat-header-action">
@@ -313,7 +310,7 @@ function applyTheme() {
         </header>`
       : `<header class="chat-header">
           <button class="icon-btn back-btn" data-action="back-home" aria-label="返回">${icon('back')}</button>
-          <div class="avatar">${avatarMarkup(conv.icon)}</div>
+          <div class="avatar">${esc(conv.icon || '✦')}</div>
           <div class="chat-header-title">${esc(conv.title)}</div>
           <button class="icon-btn" data-action="conversation-menu" data-id="${esc(conv.id)}" aria-label="对话选项">${icon('dots')}</button>
         </header>`;
@@ -390,14 +387,14 @@ function applyTheme() {
     const matchingConversations = conversations.filter(conv => conv.title.toLowerCase().includes(q));
     const matchingMessages = messages.filter(message => message.type === 'text' && message.content.toLowerCase().includes(q));
     const results = [];
-    matchingConversations.forEach(conv => results.push(`<div class="search-result" data-action="open-chat" data-id="${esc(conv.id)}"><div class="result-icon">${avatarMarkup(conv.icon)}</div><div class="result-body"><div class="result-title">对话 · ${highlighted(conv.title, q)}</div><div class="result-snippet">${esc(conv.lastMessagePreview || '还没有消息')}</div></div></div>`));
+    matchingConversations.forEach(conv => results.push(`<div class="search-result" data-action="open-chat" data-id="${esc(conv.id)}"><div class="result-icon">${esc(conv.icon || '✦')}</div><div class="result-body"><div class="result-title">对话 · ${highlighted(conv.title, q)}</div><div class="result-snippet">${esc(conv.lastMessagePreview || '还没有消息')}</div></div></div>`));
     matchingMessages.forEach(message => {
       const conv = getConversation(message.conversationId);
       if (!conv) return;
       const index = message.content.toLowerCase().indexOf(q);
       const start = Math.max(0, index - 42);
       const excerpt = `${start > 0 ? '…' : ''}${message.content.slice(start, start + 130)}${start + 130 < message.content.length ? '…' : ''}`;
-      results.push(`<div class="search-result" data-action="jump-message" data-id="${esc(message.id)}"><div class="result-icon">${avatarMarkup(conv.icon)}</div><div class="result-body"><div class="result-title">${esc(conv.title)}</div><div class="result-snippet">${highlighted(excerpt, searchQuery.trim())}</div></div></div>`);
+      results.push(`<div class="search-result" data-action="jump-message" data-id="${esc(message.id)}"><div class="result-icon">${esc(conv.icon || '✦')}</div><div class="result-body"><div class="result-title">${esc(conv.title)}</div><div class="result-snippet">${highlighted(excerpt, searchQuery.trim())}</div></div></div>`);
     });
     return results.length ? `<div class="section-heading"><span>搜索结果</span><span>${results.length} 条</span></div><div class="list-card">${results.join('')}</div>` : emptyState('没有找到相关内容', '试试更短的关键词，或换一个说法。', 'search');
   }
@@ -985,7 +982,7 @@ async function sendTextMessage(side = 'right') {
     else if (action === 'export-one') {
       const choices = sortedConversations();
       if (!choices.length) { toast('还没有可以导出的对话'); return; }
-      showModal('选择要导出的对话', `<div class="menu-list">${choices.map(conv => `<button class="menu-item" data-action="export-conversation" data-id="${esc(conv.id)}"><span class="menu-avatar">${avatarMarkup(conv.icon)}</span>${esc(conv.title)}</button>`).join('')}</div>`);
+      showModal('选择要导出的对话', `<div class="menu-list">${choices.map(conv => `<button class="menu-item" data-action="export-conversation" data-id="${esc(conv.id)}"><span>${esc(conv.icon || '✦')}</span>${esc(conv.title)}</button>`).join('')}</div>`);
     }
     else if (action === 'persist-storage') {
       if (navigator.storage?.persist) {
