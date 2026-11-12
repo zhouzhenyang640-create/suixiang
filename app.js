@@ -3,7 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.2.5';
+  const APP_VERSION = '9.2.6';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -374,15 +374,7 @@ function applyTheme() {
     if (pendingJumpTo) {
       const target = pendingJumpTo;
       pendingJumpTo = null;
-      requestAnimationFrame(() => {
-        const el = area.querySelector(`[data-message-id="${CSS.escape(target)}"]`);
-        if (el) {
-          el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-          const bubble = el.querySelector('.message-bubble');
-          bubble?.classList.add('highlight');
-          setTimeout(() => bubble?.classList.remove('highlight'), 1800);
-        }
-      });
+      requestAnimationFrame(() => scrollToMessage(target, 'smooth', true));
     } else {
       requestAnimationFrame(() => { area.scrollTop = area.scrollHeight; });
     }
@@ -397,6 +389,18 @@ function applyTheme() {
     const input = document.getElementById('composer-input');
     const button = document.getElementById('send-button');
     if (input && button) button.disabled = !input.value.trim();
+  }
+
+  function scrollToMessage(id, behavior = 'smooth', highlight = false) {
+    const area = document.getElementById('messages-area');
+    const row = area?.querySelector(`[data-message-id="${CSS.escape(id)}"]`);
+    if (!area || !row) return;
+    row.scrollIntoView({ block: 'center', behavior });
+    if (highlight) {
+      const bubble = row.querySelector('.message-bubble');
+      bubble?.classList.add('highlight');
+      setTimeout(() => bubble?.classList.remove('highlight'), 1800);
+    }
   }
 
   function renderSearch() {
@@ -555,6 +559,7 @@ async function sendTextMessage(side = 'right') {
     resizeComposer(input);
     updateSendButton();
 
+    requestAnimationFrame(() => scrollToMessage(old.id, 'auto'));
     toast('已保存修改');
     return;
   }
@@ -645,6 +650,7 @@ async function sendTextMessage(side = 'right') {
     if (!message || message.type !== 'text') return;
     currentConversationId = message.conversationId;
     editingMessageId = id;
+    pendingJumpTo = id;
     screen = 'chat';
     closeModal();
     render();
@@ -671,6 +677,7 @@ async function sendTextMessage(side = 'right') {
   await put('messages', message);
   await refreshData();
   closeModal();
+  pendingJumpTo = id;
   render();
   toast(message.side === 'left' ? '消息已移到左侧' : '消息已移到右侧');
 }
