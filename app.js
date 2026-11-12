@@ -3,7 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.1.8';
+  const APP_VERSION = '9.2.0';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -22,6 +22,10 @@
   let editingMessageId = null;
   let installPrompt = null;
   let pendingJumpTo = null;
+  let serviceWorkerRegistration = null;
+  let serviceWorkerController = null;
+  let serviceWorkerUpdateReady = false;
+  let updateCheckInProgress = false;
   let longPressTimer = null;
   let imageUrls = new Map();
 
@@ -264,10 +268,13 @@ function applyTheme() {
         <div class="setting-row"><div><div class="setting-label">导出单个对话</div><div class="setting-help">选择一个对话，保存为 TXT 文字文件</div></div><button class="setting-action" data-action="export-one">导出 TXT</button></div>
         <div class="setting-row"><div><div class="setting-label">申请持久化存储</div><div class="setting-help">尽量降低浏览器自动清理本站数据的可能</div></div><button class="setting-action" data-action="persist-storage">申请</button></div>
       </div></div>
+      <div class="settings-group"><div class="settings-title">版本与更新</div><div class="settings-card">
+        <div class="setting-row"><div><div class="setting-label">随想 v${APP_VERSION}</div><div class="setting-help" id="update-status" aria-live="polite">${serviceWorkerUpdateReady ? '已发现新版本，点击立即更新。' : '检查是否有可用的新版本'}</div></div><button class="setting-action" id="check-update-button" data-action="check-update">${serviceWorkerUpdateReady ? '立即更新' : '检查更新'}</button></div>
+      </div></div>
       <div class="settings-group"><div class="settings-title">安装</div><div class="settings-card">
         <div class="setting-row"><div><div class="setting-label">添加到手机桌面</div><div class="setting-help">安装后可从桌面全屏打开，支持离线使用</div></div><button class="setting-action" data-action="install-app">安装说明</button></div>
       </div></div>
-      <div class="settings-card about-card"><div class="about-heading">随想 · 私人聊天室 <span class="about-version">v${APP_VERSION}</span></div>数据默认只保存在当前浏览器的本机 IndexedDB 中。建议定期导出 JSON 备份，尤其是在清理浏览器数据或更换手机之前。</div>`;
+      <div class="settings-card about-card"><div class="about-heading">随想 · 私人聊天室</div>数据默认只保存在当前浏览器的本机 IndexedDB 中。建议定期导出 JSON 备份，尤其是在清理浏览器数据或更换手机之前。</div>`;
   }
 
   function renderChat() {
@@ -830,6 +837,106 @@ async function sendTextMessage(side = 'right') {
     showModal('安装到手机', `<p class="small-note">${content}</p><p class="small-note">首次安装并成功打开一次后，应用文件会缓存到本机。之后再次打开可离线使用。</p>`, `<div class="modal-actions"><button class="btn-secondary" data-action="modal-close">知道了</button>${installPrompt ? `<button class="btn-primary" data-action="confirm-install">立即安装</button>` : ''}</div>`);
   }
 
+  function setUpdateFeedback(message, buttonText) {
+    const status = document.getElementById('update-status');
+    const button = document.getElementById('check-update-button');
+    if (status) status.textContent = message;
+    if (button && buttonText) button.textContent = buttonText;
+  }
+
+  async function waitForServiceWorkerUpdate(registration, activeBefore, controllerBefore) {
+    const deadline = Date.now() + 10000;
+    const hasChanged = () => (
+      (registration.active && registration.active !== activeBefore) ||
+      (navigator.serviceWorker.controller && navigator.serviceWorker.controller !== controllerBefore)
+    );
+
+    while (Date.now() < deadline) {
+      if (hasChanged()) return true;
+
+      const worker = registration.installing || registration.waiting;
+      if (!worker) return false;
+      if (worker.state === 'redundant') return false;
+      if (worker.state === 'activated') return hasChanged();
+
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) return null;
+
+      await new Promise(resolve => {
+        let finished = false;
+        let timer;
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          worker.removeEventListener('statechange', onStateChange);
+          clearTimeout(timer);
+          resolve();
+        };
+        const onStateChange = () => {
+          if (worker.state === 'activated' || worker.state === 'redundant') finish();
+        };
+        worker.addEventListener('statechange', onStateChange);
+        timer = setTimeout(finish, remaining);
+      });
+    }
+
+    return hasChanged() ? true : null;
+  }
+
+  async function checkForUpdates(button) {
+    if (updateCheckInProgress) return;
+    const updateButton = button || document.getElementById('check-update-button');
+    if (updateButton) {
+      updateButton.disabled = true;
+      updateButton.textContent = '检查中…';
+    }
+    updateCheckInProgress = true;
+
+    let reloadRequired = false;
+    try {
+      if (!('serviceWorker' in navigator)) {
+        setUpdateFeedback('当前浏览器不支持应用更新检查。', '检查更新');
+        return;
+      }
+      if (!navigator.onLine) {
+        setUpdateFeedback('当前处于离线状态，请联网后重试。', '重新检查');
+        return;
+      }
+
+      const registration = serviceWorkerRegistration || await navigator.serviceWorker.getRegistration() || await navigator.serviceWorker.register('./sw.js');
+      serviceWorkerRegistration = registration;
+
+      if (serviceWorkerUpdateReady) {
+        setUpdateFeedback('已发现新版本，正在刷新应用…', '正在更新…');
+        reloadRequired = true;
+        window.location.reload();
+        return;
+      }
+
+      const activeBefore = registration.active;
+      const controllerBefore = navigator.serviceWorker.controller;
+      await registration.update();
+      const changed = await waitForServiceWorkerUpdate(registration, activeBefore, controllerBefore);
+
+      if (changed || serviceWorkerUpdateReady || registration.waiting) {
+        serviceWorkerUpdateReady = true;
+        setUpdateFeedback('已发现新版本，正在刷新应用…', '正在更新…');
+        reloadRequired = true;
+        window.location.reload();
+      } else if (changed === null) {
+        setUpdateFeedback('更新仍在准备中，请稍后重新检查。', '重新检查');
+      } else {
+        setUpdateFeedback(`当前已是最新版本（v${APP_VERSION}）`, '重新检查');
+      }
+    } catch (error) {
+      console.warn('Update check failed', error);
+      setUpdateFeedback('检查更新失败，请确认网络连接后重试。', '重新检查');
+    } finally {
+      updateCheckInProgress = false;
+      if (!reloadRequired && updateButton) updateButton.disabled = false;
+    }
+  }
+
   // Event delegation
   document.addEventListener('click', async event => {
     const target = event.target.closest('[data-action]');
@@ -883,6 +990,7 @@ async function sendTextMessage(side = 'right') {
         toast(granted ? '浏览器已授予持久化存储' : '浏览器未授予持久化存储，可定期备份');
       } else toast('当前浏览器不支持此功能');
     }
+    else if (action === 'check-update') await checkForUpdates(target);
     else if (action === 'install-app') openInstallHelp();
     else if (action === 'confirm-install') {
       if (installPrompt) {
@@ -1000,7 +1108,20 @@ async function sendTextMessage(side = 'right') {
   });
   window.addEventListener('appinstalled', () => toast('已安装到手机桌面'));
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(error => console.warn('Service worker registration failed', error)));
+    serviceWorkerController = navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      const currentController = navigator.serviceWorker.controller;
+      if (serviceWorkerController && currentController && currentController !== serviceWorkerController) {
+        serviceWorkerUpdateReady = true;
+        setUpdateFeedback('已发现新版本，点击“立即更新”即可刷新。', '立即更新');
+      }
+      serviceWorkerController = currentController;
+    });
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(registration => { serviceWorkerRegistration = registration; })
+        .catch(error => console.warn('Service worker registration failed', error));
+    });
   }
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
