@@ -79,6 +79,7 @@
 :root[data-preset="youmessage"] .primary-icon-btn {
   background: var(--accent-strong);
   color: #FFFFFF;
+  border-radius: 50%;
   box-shadow: 0 5px 14px rgba(0, 122, 255, .19);
 }
 
