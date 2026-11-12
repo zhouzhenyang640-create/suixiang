@@ -985,7 +985,7 @@ async function sendTextMessage(side = 'right') {
     else if (action === 'export-one') {
       const choices = sortedConversations();
       if (!choices.length) { toast('还没有可以导出的对话'); return; }
-      showModal('选择要导出的对话', `<div class="menu-list">${choices.map(conv => `<button class="menu-item" data-action="export-conversation" data-id="${esc(conv.id)}"><span>${esc(conv.icon || '✦')}</span>${esc(conv.title)}</button>`).join('')}</div>`);
+      showModal('选择要导出的对话', `<div class="menu-list">${choices.map(conv => `<button class="menu-item" data-action="export-conversation" data-id="${esc(conv.id)}"><span class="menu-avatar">${avatarMarkup(conv.icon)}</span>${esc(conv.title)}</button>`).join('')}</div>`);
     }
     else if (action === 'persist-storage') {
       if (navigator.storage?.persist) {
