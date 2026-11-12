@@ -66,8 +66,8 @@
     --bubble-other-text: #FFFFFF;
     --danger: #FF453A;
     --shadow: 0 14px 44px rgba(0, 0, 0, .38);
-  --chat-header-avatar-bg: #3A3A3C;
-  --chat-header-avatar-color: #AEAEB2;
+    --chat-header-avatar-bg: #3A3A3C;
+    --chat-header-avatar-color: #AEAEB2;
   }
 }
 
