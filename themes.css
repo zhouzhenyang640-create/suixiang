@@ -17,8 +17,8 @@
   --accent-strong: #007AFF;
   --bubble: #007AFF;
   --bubble-text: #FFFFFF;
-  --bubble-other: #E5E5EA;
-  --bubble-other-text: #1C1C1E;
+  --bubble-other: #E9E9EB;
+  --bubble-other-text: #141414;
   --danger: #FF3B30;
   --shadow: 0 12px 36px rgba(20, 35, 60, .08);
 }
@@ -255,4 +255,67 @@
 
 :root[data-preset="youmessage"] .message-bubble.highlight {
   outline-color: var(--accent-strong);
+}
+
+
+/* YouMessage iMessage-style rounded bubbles and curved SVG tails */
+:root[data-preset="youmessage"] .messages {
+  gap: 18px;
+}
+
+:root[data-preset="youmessage"] .message-bubble {
+  position: relative;
+  z-index: 1;
+  max-width: min(80%, 520px);
+  padding: 8px 13px;
+  border-radius: 24px;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  box-shadow: none;
+}
+
+:root[data-preset="youmessage"] .message-bubble .bubble-text {
+  display: block;
+  white-space: pre-wrap;
+}
+
+:root[data-preset="youmessage"] .message-bubble.opposite-bubble {
+  border-radius: 24px;
+}
+
+:root[data-preset="youmessage"] .message-bubble::after {
+  content: none;
+}
+
+:root[data-preset="youmessage"] .youmessage-tail {
+  position: absolute;
+  display: block;
+  bottom: -3.5px;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+:root[data-preset="youmessage"] .message-bubble:not(.opposite-bubble) .youmessage-tail {
+  right: -8.5px;
+  color: var(--bubble);
+  transform: rotate(-2deg) scale(1);
+}
+
+:root[data-preset="youmessage"] .message-bubble.opposite-bubble .youmessage-tail {
+  left: -8.5px;
+  color: var(--bubble-other);
+  transform: scaleX(-1) rotate(-2deg);
+}
+
+:root[data-preset="youmessage"] .message-bubble.image-bubble {
+  padding: 5px;
+  overflow: visible;
+}
+
+:root[data-preset="youmessage"] .message-bubble.image-bubble img {
+  border-radius: 16px;
 }
