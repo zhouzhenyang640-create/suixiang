@@ -5,9 +5,9 @@
 
 :root[data-preset="youmessage"] {
   color-scheme: light;
-  --bg: #F2F2F7;
+  --bg: #FFFFFF;
   --surface: #FFFFFF;
-  --surface-2: #F2F2F7;
+  --surface-2: #FFFFFF;
   --surface-3: #E5E5EA;
   --text: #1C1C1E;
   --muted: #8E8E93;
@@ -318,4 +318,38 @@
 
 :root[data-preset="youmessage"] .message-bubble.image-bubble img {
   border-radius: 16px;
+}
+
+
+/* YouMessage: white iMessage canvas and grouped message runs */
+:root[data-preset="youmessage"] .messages {
+  gap: 0;
+}
+
+:root[data-preset="youmessage"] .chat-intro {
+  margin-bottom: 4px;
+}
+
+:root[data-preset="youmessage"] .message-row {
+  margin-top: 18px;
+}
+
+:root[data-preset="youmessage"] .message-row.grouped-prev {
+  margin-top: 3px;
+}
+
+:root[data-preset="youmessage"] .message-bubble.grouped-next:not(.opposite-bubble) {
+  border-bottom-right-radius: 7px;
+}
+
+:root[data-preset="youmessage"] .message-bubble.grouped-prev:not(.opposite-bubble) {
+  border-top-right-radius: 7px;
+}
+
+:root[data-preset="youmessage"] .message-bubble.grouped-next.opposite-bubble {
+  border-bottom-left-radius: 7px;
+}
+
+:root[data-preset="youmessage"] .message-bubble.grouped-prev.opposite-bubble {
+  border-top-left-radius: 7px;
 }
