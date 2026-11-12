@@ -290,10 +290,16 @@ function applyTheme() {
     app.innerHTML = `
       <section class="chat-screen">
         <header class="chat-header">
-          <button class="icon-btn back-btn" data-action="back-home" aria-label="返回">${icon('back')}</button>
-          <div class="avatar">${esc(conv.icon || '✦')}</div>
-          <div class="chat-header-title">${esc(conv.title)}</div>
-          <button class="icon-btn" data-action="conversation-menu" data-id="${esc(conv.id)}" aria-label="对话选项">${icon('dots')}</button>
+          <div class="chat-header-action">
+            <button class="icon-btn back-btn" data-action="back-home" aria-label="返回">${icon('back')}</button>
+          </div>
+          <div class="chat-header-center">
+            <div class="avatar">${esc(conv.icon || '✦')}</div>
+            <div class="chat-header-title">${esc(conv.title)}</div>
+          </div>
+          <div class="chat-header-action">
+            <button class="icon-btn chat-menu-btn" data-action="conversation-menu" data-id="${esc(conv.id)}" aria-label="对话选项">${icon('dots')}</button>
+          </div>
         </header>
         <main class="messages" id="messages-area">${intro}${messageHtml}</main>
         <footer class="composer-wrap">
