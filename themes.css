@@ -603,19 +603,11 @@
 
 
 
-/* Quoted reply spacing follows each YouMessage theme's original C.
-   Different-side C=18px: A=36px, B=18px.
-   Same-side grouped C=3px: A=6px, B=3px. */
+/* Quoted reply spacing uses the theme's original intervals:
+   A always equals different-side D=18px; B always equals same-side C=3px. */
 :root[data-preset^="you"] .message-row.has-quote {
-  margin-top: 36px;
-}
-:root[data-preset^="you"] .message-row.grouped-prev.has-quote {
-  margin-top: 6px;
-}
-:root[data-preset^="you"] .message-row.quote-after-different.has-quote {
   margin-top: 18px;
 }
-/* The quote-to-own-bubble gap always follows the compact same-side interval. */
 :root[data-preset^="you"] .message-row.has-quote > .message-quote {
   margin-bottom: 3px;
 }
