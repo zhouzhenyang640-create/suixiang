@@ -97,6 +97,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   pointer-events: none;
 }
 
+.menu-avatar {
+  position: relative;
+  display: inline-block;
+  width: 1.4em;
+  height: 1.4em;
+  flex: 0 0 1.4em;
+}
+
 .avatar-glyph-text {
   display: block;
   font-size: inherit;
