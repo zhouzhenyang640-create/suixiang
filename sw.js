@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suixiang-shell-v9.1.8';
+const CACHE_NAME = 'suixiang-shell-v9.2.0';
 const APP_SHELL = [
   './',
   './index.html',
@@ -11,7 +11,11 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache =>
+      cache.addAll(APP_SHELL.map(path => new Request(path, { cache: 'reload' })))
+    )
+  );
   self.skipWaiting();
 });
 
