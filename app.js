@@ -3,7 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.2.2';
+  const APP_VERSION = '9.2.3';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -58,13 +58,23 @@
 
   const youMessageTail = '<svg class="youmessage-tail" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M 14.5 0 C 14.5 6 15.6 17.3 19 19.5 Q 19.6 20.1 18.4 20.6 Q 13.4 20.1 8.5 15.5 L 2 14 L 2 0 Z" fill="currentColor"/></svg>';
 
+  // YouMessage family presets use iMessage-style tails and per-group timestamps.
+  // Register future variants with the "youmessage-" prefix (for example, youmessage-soft).
   function isYouMessagePreset() {
-    return document.documentElement.dataset.preset === 'youmessage';
+    const preset = String(document.documentElement.dataset.preset || '').toLowerCase();
+    return preset === 'youmessage' || preset.startsWith('youmessage-');
+  }
+
+  function formatMessageTime(timestamp) {
+    const date = new Date(Number(timestamp));
+    if (!Number.isFinite(date.getTime())) return '';
+    const pad = value => String(value).padStart(2, '0');
+    return `${date.getMonth() + 1}/${date.getDate()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
 
   function syncMessageGrouping(area, list) {
     if (!area) return;
-    const showYouMessageTail = isYouMessagePreset();
+    const showYouMessageTime = isYouMessagePreset();
     list.forEach((message, index) => {
       const row = area.querySelector(`[data-message-id="${CSS.escape(message.id)}"]`);
       if (!row) return;
@@ -74,11 +84,33 @@
       row.classList.toggle('grouped-next', nextSameSide);
       const bubble = row.querySelector('.message-bubble');
       if (!bubble) return;
+
       const tail = bubble.querySelector('.youmessage-tail');
-      if (!showYouMessageTail || nextSameSide) {
+      if (!showYouMessageTime || nextSameSide) {
         if (tail) tail.remove();
       } else if (!tail) {
-        if (isYouMessagePreset()) bubble.insertAdjacentHTML('beforeend', youMessageTail);
+        bubble.insertAdjacentHTML('beforeend', youMessageTail);
+      }
+
+      const stack = row.querySelector(':scope > .message-stack');
+      if (showYouMessageTime && !nextSameSide) {
+        let messageStack = stack;
+        if (!messageStack) {
+          messageStack = document.createElement('div');
+          messageStack.className = 'message-stack';
+          row.insertBefore(messageStack, bubble);
+          messageStack.appendChild(bubble);
+        }
+        let timeLabel = messageStack.querySelector('.message-time');
+        if (!timeLabel) {
+          timeLabel = document.createElement('span');
+          timeLabel.className = 'message-time';
+          messageStack.appendChild(timeLabel);
+        }
+        timeLabel.textContent = formatMessageTime(message.createdAt ?? message.updatedAt);
+      } else if (stack) {
+        row.insertBefore(bubble, stack);
+        stack.remove();
       }
     });
   }
@@ -338,6 +370,7 @@ function applyTheme() {
     resizeComposer(input);
     updateSendButton();
     const area = document.getElementById('messages-area');
+    syncMessageGrouping(area, list);
     if (pendingJumpTo) {
       const target = pendingJumpTo;
       pendingJumpTo = null;
