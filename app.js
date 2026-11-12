@@ -3,6 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
+  const APP_VERSION = '9.1.5';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -266,7 +267,7 @@ function applyTheme() {
       <div class="settings-group"><div class="settings-title">安装</div><div class="settings-card">
         <div class="setting-row"><div><div class="setting-label">添加到手机桌面</div><div class="setting-help">安装后可从桌面全屏打开，支持离线使用</div></div><button class="setting-action" data-action="install-app">安装说明</button></div>
       </div></div>
-      <div class="settings-card about-card">随想 · 私人聊天室<br>数据默认只保存在当前浏览器的本机 IndexedDB 中。建议定期导出 JSON 备份，尤其是在清理浏览器数据或更换手机之前。</div>`;
+      <div class="settings-card about-card"><div class="about-heading">随想 · 私人聊天室 <span class="about-version">v${APP_VERSION}</span></div>数据默认只保存在当前浏览器的本机 IndexedDB 中。建议定期导出 JSON 备份，尤其是在清理浏览器数据或更换手机之前。</div>`;
   }
 
   function renderChat() {
