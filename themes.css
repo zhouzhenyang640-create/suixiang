@@ -612,9 +612,10 @@
 :root[data-preset^="you"] .message-row.grouped-prev.has-quote {
   margin-top: 6px;
 }
-:root[data-preset^="you"] .message-row.has-quote > .message-quote {
-  margin-bottom: 18px;
+:root[data-preset^="you"] .message-row.quote-after-different.has-quote {
+  margin-top: 18px;
 }
-:root[data-preset^="you"] .message-row.grouped-prev.has-quote > .message-quote {
+/* The quote-to-own-bubble gap always follows the compact same-side interval. */
+:root[data-preset^="you"] .message-row.has-quote > .message-quote {
   margin-bottom: 3px;
 }
