@@ -354,6 +354,13 @@
   border-top-left-radius: 7px;
 }
 
+/* Keep the original horizontal chat header for the default preset.
+   The wrappers are present in app.js for both themes, but collapse in default mode. */
+:root:not([data-preset="youmessage"]) .chat-header-action,
+:root:not([data-preset="youmessage"]) .chat-header-center {
+  display: contents;
+}
+
 /* YouMessage acrylic chat navigation: approved final layout */
 :root[data-preset="youmessage"] {
   --chat-nav-gradient-top: rgba(255, 255, 255, 1);
@@ -384,6 +391,7 @@
 /* Header layout: side actions + centered conversation identity */
 :root[data-preset="youmessage"] .chat-header {
   position: relative;
+  z-index: 2;
   isolation: isolate;
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) 42px;
@@ -399,7 +407,7 @@
 :root[data-preset="youmessage"] .chat-header::before {
   content: "";
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   top: calc(0px - env(safe-area-inset-top));
   left: 0;
   right: 0;
@@ -412,6 +420,12 @@
     transparent 100%
   );
   pointer-events: none;
+}
+
+:root[data-preset="youmessage"] .chat-header-action,
+:root[data-preset="youmessage"] .chat-header-center {
+  position: relative;
+  z-index: 1;
 }
 
 :root[data-preset="youmessage"] .chat-header-action {
