@@ -225,6 +225,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .message-quote.quote-from-left { border-color: var(--bubble-other); }
 .message-quote.quote-from-right { border-color: var(--bubble); }
 .message-quote:active { filter: brightness(.97); }
+.message-quote.highlight { outline: 2px solid var(--accent-strong); outline-offset: 3px; }
 .message-quote-text {
   display: -webkit-box;
   overflow: hidden;
