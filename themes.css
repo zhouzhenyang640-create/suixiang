@@ -393,28 +393,15 @@
   background: var(--chat-canvas);
 }
 
-:root[data-preset="youmessage"] .chat-screen::before {
-  content: "";
+/* The header floats above the scrollable message layer.
+   Its transparent gradient reveals messages passing underneath it. */
+:root[data-preset="youmessage"] .chat-header {
   position: absolute;
-  z-index: 0;
-  top: calc(0px - env(safe-area-inset-top));
+  z-index: 3;
+  top: 0;
   left: 0;
   right: 0;
-  height: calc(66px + env(safe-area-inset-top) + env(safe-area-inset-top));
-  background: linear-gradient(
-    to bottom,
-    var(--chat-nav-gradient-top) 0%,
-    var(--chat-nav-gradient-mid) 24%,
-    var(--chat-nav-gradient-soft) 62%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-
-:root[data-preset="youmessage"] .chat-header {
-  position: relative;
-  z-index: 1;
-  isolation: auto;
+  isolation: isolate;
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) 42px;
   align-items: start;
@@ -424,6 +411,24 @@
   border: 0;
   background: transparent;
   overflow: visible;
+}
+
+:root[data-preset="youmessage"] .chat-header::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: calc(0px - env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  height: calc(158px + env(safe-area-inset-top));
+  background: linear-gradient(
+    to bottom,
+    var(--chat-nav-gradient-top) 0%,
+    var(--chat-nav-gradient-mid) 24%,
+    var(--chat-nav-gradient-soft) 62%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
 }
 
 :root[data-preset="youmessage"] .chat-header-action,
@@ -436,6 +441,7 @@
   position: relative;
   z-index: 1;
   background: transparent;
+  padding-top: calc(env(safe-area-inset-top) + 92px);
 }
 
 :root[data-preset="youmessage"] .chat-header-action {
