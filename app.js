@@ -3,7 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.3.0';
+  const APP_VERSION = '9.3.1';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -406,10 +406,11 @@ function applyTheme() {
     const grouped = (previousSameSide ? ' grouped-prev' : '') + (nextSameSide ? ' grouped-next' : '');
     const tail = !nextSameSide && isYouMessagePreset() ? youMessageTail : '';
     const quote = message.quote ? renderQuoteCard(message.id, message.quote, true) : '';
+    const quotedRow = quote ? ' has-quote' : '';
 
     if (message.type === 'image') {
       const src = imageSrc(message);
-      return '<div class="message-row' + leftRow + grouped + '" data-message-id="' + esc(message.id) + '">' +
+      return '<div class="message-row' + leftRow + grouped + quotedRow + '" data-message-id="' + esc(message.id) + '">' +
         quote + '<div class="message-bubble image-bubble' + leftBubble + '" data-id="' + esc(message.id) + '">' +
         '<img src="' + src + '" alt="图片消息" data-action="view-image" data-id="' + esc(message.id) + '">' + tail +
         '</div></div>';
@@ -419,7 +420,7 @@ function applyTheme() {
     const bubble = body
       ? '<div class="message-bubble' + leftBubble + '" data-id="' + esc(message.id) + '"><span class="bubble-text">' + esc(body) + '</span>' + tail + '</div>'
       : '<div class="message-bubble empty-bubble' + leftBubble + '" data-id="' + esc(message.id) + '">' + tail + '</div>';
-    return '<div class="message-row' + leftRow + grouped + '" data-message-id="' + esc(message.id) + '">' + quote + bubble + '</div>';
+    return '<div class="message-row' + leftRow + grouped + quotedRow + '" data-message-id="' + esc(message.id) + '">' + quote + bubble + '</div>';
   }
 
   function renderQuoteCard(ownerId, quote, interactive = true) {
