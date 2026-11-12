@@ -21,6 +21,8 @@
   --bubble-other-text: #141414;
   --danger: #FF3B30;
   --shadow: 0 12px 36px rgba(20, 35, 60, .08);
+  --chat-header-avatar-bg: #E5E5EA;
+  --chat-header-avatar-color: #8E8E93;
 }
 
 :root[data-preset="youmessage"][data-theme="dark"] {
@@ -41,6 +43,8 @@
   --bubble-other-text: #FFFFFF;
   --danger: #FF453A;
   --shadow: 0 14px 44px rgba(0, 0, 0, .38);
+  --chat-header-avatar-bg: #3A3A3C;
+  --chat-header-avatar-color: #AEAEB2;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -62,6 +66,8 @@
     --bubble-other-text: #FFFFFF;
     --danger: #FF453A;
     --shadow: 0 14px 44px rgba(0, 0, 0, .38);
+  --chat-header-avatar-bg: #3A3A3C;
+  --chat-header-avatar-color: #AEAEB2;
   }
 }
 
@@ -175,6 +181,14 @@
   border: 1px solid var(--line);
   border-radius: 22px;
   background: var(--surface-2);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+:root[data-preset="youmessage"] .composer textarea::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 :root[data-preset="youmessage"] .send-btn {
@@ -523,8 +537,8 @@
   height: 42px;
   margin: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--accent-strong) 12%, var(--surface));
-  color: var(--accent-strong);
+  background: var(--chat-header-avatar-bg);
+  color: var(--chat-header-avatar-color);
   font-size: 21px;
 }
 
