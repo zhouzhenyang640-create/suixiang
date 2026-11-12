@@ -81,6 +81,32 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .conversation-row { width: 100%; display: flex; align-items: center; gap: 13px; padding: 14px 14px; border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: left; cursor: pointer; min-width: 0; }
 .conversation-row:last-child { border-bottom: 0; }
 .conversation-row:active { background: var(--surface-2); }
+/* Shared custom conversation-icon layer. Keep this theme-agnostic so every preset
+   centers the actual glyph box, not the inherited text line box. */
+.avatar,
+.chat-intro .intro-avatar,
+.result-icon {
+  position: relative;
+}
+
+.avatar-glyph {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.avatar-glyph-text {
+  display: block;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .avatar { width: 48px; height: 48px; flex: 0 0 48px; display: grid; place-items: center; border-radius: 17px; background: var(--surface-2); font-size: 22px; }
 .conversation-main { flex: 1; min-width: 0; }
 .conversation-titleline { display: flex; align-items: center; gap: 7px; min-width: 0; }
