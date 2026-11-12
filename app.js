@@ -3,7 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.2.3';
+  const APP_VERSION = '9.2.4';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -62,7 +62,7 @@
   // Register future variants with the "youmessage-" prefix (for example, youmessage-soft).
   function isYouMessagePreset() {
     const preset = String(document.documentElement.dataset.preset || '').toLowerCase();
-    return preset === 'youmessage' || preset.startsWith('youmessage-');
+    return preset.startsWith('you');
   }
 
   function formatMessageTime(timestamp) {
