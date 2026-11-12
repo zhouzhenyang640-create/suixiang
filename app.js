@@ -287,9 +287,8 @@ function applyTheme() {
   }
   return `<div class="message-row${leftRow}${grouped}" data-message-id="${esc(message.id)}"><div class="message-bubble${leftBubble}" data-id="${esc(message.id)}"><span class="bubble-text">${esc(message.content)}</span>${tail}</div></div>`;
 }).join('');
-    app.innerHTML = `
-      <section class="chat-screen">
-        <header class="chat-header">
+    const chatHeaderHtml = isYouMessagePreset()
+      ? `<header class="chat-header">
           <div class="chat-header-action">
             <button class="icon-btn back-btn" data-action="back-home" aria-label="返回">${icon('back')}</button>
           </div>
@@ -300,7 +299,16 @@ function applyTheme() {
           <div class="chat-header-action">
             <button class="icon-btn chat-menu-btn" data-action="conversation-menu" data-id="${esc(conv.id)}" aria-label="对话选项">${icon('dots')}</button>
           </div>
-        </header>
+        </header>`
+      : `<header class="chat-header">
+          <button class="icon-btn back-btn" data-action="back-home" aria-label="返回">${icon('back')}</button>
+          <div class="avatar">${esc(conv.icon || '✦')}</div>
+          <div class="chat-header-title">${esc(conv.title)}</div>
+          <button class="icon-btn" data-action="conversation-menu" data-id="${esc(conv.id)}" aria-label="对话选项">${icon('dots')}</button>
+        </header>`;
+    app.innerHTML = `
+      <section class="chat-screen">
+        ${chatHeaderHtml}
         <main class="messages" id="messages-area">${intro}${messageHtml}</main>
         <footer class="composer-wrap">
           ${editingMessageId ? `<div class="editing-banner"><span>正在修改这条消息</span><button class="icon-btn" style="width:28px;height:28px" data-action="cancel-edit" aria-label="取消修改">${icon('close')}</button></div>` : ''}
