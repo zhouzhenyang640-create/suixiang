@@ -3,7 +3,7 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.3.6';
+  const APP_VERSION = '9.3.7';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
@@ -231,9 +231,14 @@
     await refreshData();
   }
 
+function normalizePreset(preset) {
+  if (preset === 'youmessage-pink') return 'youpink';
+  return ['youmessage', 'youpink'].includes(preset) ? preset : 'default';
+}
+
 function applyTheme() { 
   const theme = settings.theme || 'system'; 
-  const preset = ['youmessage', 'youmessage-pink'].includes(settings.preset) ? settings.preset : 'default'; 
+  const preset = normalizePreset(settings.preset); 
   document.documentElement.dataset.theme = theme; 
   document.documentElement.dataset.preset = preset;
   const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -313,9 +318,10 @@ function applyTheme() {
   }
 
   function renderSettingsBody() {
+    const selectedPreset = normalizePreset(settings.preset);
     return `
       <div class="settings-group"><div class="settings-title">外观</div><div class="settings-card">
-      <div class="setting-row"><div><div class="setting-label">聊天主题</div><div class="setting-help">选择预设的界面风格</div></div><select class="setting-select" id="preset-select"><option value="default" ${!['youmessage', 'youmessage-pink'].includes(settings.preset) ? 'selected' : ''}>默认主题</option><option value="youmessage" ${settings.preset === 'youmessage' ? 'selected' : ''}>YouMessage</option><option value="youmessage-pink" ${settings.preset === 'youmessage-pink' ? 'selected' : ''}>YouMessage Pink</option></select></div> <div class="setting-row"><div><div class="setting-label">主题模式</div><div class="setting-help">跟随系统，或固定使用浅色 / 深色</div></div><select class="setting-select" id="theme-select"><option value="system" ${settings.theme === 'system' ? 'selected' : ''}>跟随系统</option><option value="light" ${settings.theme === 'light' ? 'selected' : ''}>浅色模式</option><option value="dark" ${settings.theme === 'dark' ? 'selected' : ''}>深色模式</option></select></div>
+      <div class="setting-row"><div><div class="setting-label">聊天主题</div><div class="setting-help">选择预设的界面风格</div></div><select class="setting-select" id="preset-select"><option value="default" ${selectedPreset === 'default' ? 'selected' : ''}>默认主题</option><option value="youmessage" ${selectedPreset === 'youmessage' ? 'selected' : ''}>YouMessage</option><option value="youpink" ${selectedPreset === 'youpink' ? 'selected' : ''}>YouPink</option></select></div> <div class="setting-row"><div><div class="setting-label">主题模式</div><div class="setting-help">跟随系统，或固定使用浅色 / 深色</div></div><select class="setting-select" id="theme-select"><option value="system" ${settings.theme === 'system' ? 'selected' : ''}>跟随系统</option><option value="light" ${settings.theme === 'light' ? 'selected' : ''}>浅色模式</option><option value="dark" ${settings.theme === 'dark' ? 'selected' : ''}>深色模式</option></select></div>
       </div></div>
       <div class="settings-group"><div class="settings-title">数据与备份</div><div class="settings-card">
         <div class="setting-row"><div><div class="setting-label">导出全部数据</div><div class="setting-help">生成 JSON 备份，包含对话、消息、收藏和图片</div></div><button class="setting-action" data-action="export-backup">导出 JSON</button></div>
@@ -1045,7 +1051,7 @@ async function sendTextMessage(side = 'right') {
       importedMessages.forEach(item => tx.objectStore('messages').put(item));
       importedTrash.forEach(item => tx.objectStore('trash').put(item));
       if (raw.settings && typeof raw.settings === 'object' && ['system', 'light', 'dark'].includes(raw.settings.theme)) tx.objectStore('settings').put({ key: 'theme', value: raw.settings.theme });
-      if (raw.settings && typeof raw.settings === 'object' && ['default', 'youmessage', 'youmessage-pink'].includes(raw.settings.preset)) tx.objectStore('settings').put({ key: 'preset', value: raw.settings.preset });
+      if (raw.settings && typeof raw.settings === 'object' && ['default', 'youmessage', 'youmessage-pink', 'youpink'].includes(raw.settings.preset)) tx.objectStore('settings').put({ key: 'preset', value: normalizePreset(raw.settings.preset) });
       await txDone(tx);
       await refreshData();
       render();
@@ -1302,7 +1308,7 @@ async function sendTextMessage(side = 'right') {
       render();
     }
     else if (event.target.id === 'preset-select') {
-  settings.preset = ['youmessage', 'youmessage-pink'].includes(event.target.value) ? event.target.value : 'default';
+  settings.preset = normalizePreset(event.target.value);
   await put('settings', { key: 'preset', value: settings.preset });
   await refreshData();
   render();
