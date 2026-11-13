@@ -3,7 +3,7 @@
    The default preset continues to use styles.css without overrides.
 */
 
-:root[data-preset="youmessage"] {
+:root[data-preset^="you"] {
   color-scheme: light;
   --bg: #FFFFFF;
   --surface: #FFFFFF;
@@ -25,7 +25,7 @@
   --chat-header-avatar-color: #8E8E93;
 }
 
-:root[data-preset="youmessage"][data-theme="dark"] {
+:root[data-preset^="you"][data-theme="dark"] {
   color-scheme: dark;
   --bg: #000000;
   --surface: #1C1C1E;
@@ -48,7 +48,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root[data-preset="youmessage"][data-theme="system"] {
+  :root[data-preset^="you"][data-theme="system"] {
     color-scheme: dark;
     --bg: #000000;
     --surface: #1C1C1E;
@@ -72,55 +72,55 @@
 }
 
 /* Global surfaces and restrained iOS-like treatment */
-:root[data-preset="youmessage"] .app-shell {
+:root[data-preset^="you"] .app-shell {
   background: var(--bg);
 }
 
-:root[data-preset="youmessage"] .primary-icon-btn {
+:root[data-preset^="you"] .primary-icon-btn {
   background: var(--accent-strong);
   color: #FFFFFF;
   border-radius: 50%;
   box-shadow: 0 5px 14px rgba(0, 122, 255, .19);
 }
 
-:root[data-preset="youmessage"] .icon-btn:active,
-:root[data-preset="youmessage"] .row-more:active {
+:root[data-preset^="you"] .icon-btn:active,
+:root[data-preset^="you"] .row-more:active {
   background: color-mix(in srgb, var(--accent-strong) 10%, transparent);
 }
 
-:root[data-preset="youmessage"] .list-card,
-:root[data-preset="youmessage"] .settings-card {
+:root[data-preset^="you"] .list-card,
+:root[data-preset^="you"] .settings-card {
   border-color: var(--line);
   box-shadow: none;
 }
 
-:root[data-preset="youmessage"] .avatar,
-:root[data-preset="youmessage"] .result-icon,
-:root[data-preset="youmessage"] .chat-intro .intro-avatar {
+:root[data-preset^="you"] .avatar,
+:root[data-preset^="you"] .result-icon,
+:root[data-preset^="you"] .chat-intro .intro-avatar {
   background: var(--surface-2);
 }
 
-:root[data-preset="youmessage"] .pin-mark {
+:root[data-preset^="you"] .pin-mark {
   color: var(--accent-strong);
 }
 
-:root[data-preset="youmessage"] .empty-orb {
+:root[data-preset^="you"] .empty-orb {
   background: color-mix(in srgb, var(--accent-strong) 10%, var(--surface));
   color: var(--accent-strong);
 }
 
 /* Conversation bubbles with small iMessage-inspired tails */
-:root[data-preset="youmessage"] .message-bubble {
+:root[data-preset^="you"] .message-bubble {
   position: relative;
   border-radius: 20px 20px 5px 20px;
   box-shadow: none;
 }
 
-:root[data-preset="youmessage"] .message-bubble.opposite-bubble {
+:root[data-preset^="you"] .message-bubble.opposite-bubble {
   border-radius: 20px 20px 20px 5px;
 }
 
-:root[data-preset="youmessage"] .message-bubble::after {
+:root[data-preset^="you"] .message-bubble::after {
   content: "";
   position: absolute;
   right: -5px;
@@ -132,29 +132,29 @@
   pointer-events: none;
 }
 
-:root[data-preset="youmessage"] .message-bubble.opposite-bubble::after {
+:root[data-preset^="you"] .message-bubble.opposite-bubble::after {
   right: auto;
   left: -5px;
   background: var(--bubble-other);
   clip-path: polygon(100% 0, 0 100%, 100% 78%);
 }
 
-:root[data-preset="youmessage"] .message-bubble.image-bubble {
+:root[data-preset^="you"] .message-bubble.image-bubble {
   padding: 5px;
   overflow: visible;
 }
 
-:root[data-preset="youmessage"] .message-bubble.image-bubble img {
+:root[data-preset^="you"] .message-bubble.image-bubble img {
   border-radius: 16px;
 }
 
 /* Composer: separate round tools, soft capsule field, blue send control */
-:root[data-preset="youmessage"] .composer-wrap {
+:root[data-preset^="you"] .composer-wrap {
   background: var(--surface);
   border-top-color: var(--line);
 }
 
-:root[data-preset="youmessage"] .composer {
+:root[data-preset^="you"] .composer {
   gap: 7px;
   padding: 0;
   background: transparent;
@@ -162,7 +162,7 @@
   align-items: center;
 }
 
-:root[data-preset="youmessage"] .composer .attach-btn {
+:root[data-preset^="you"] .composer .attach-btn {
   flex-basis: 38px;
   width: 38px;
   height: 38px;
@@ -172,11 +172,11 @@
   color: var(--muted);
 }
 
-:root[data-preset="youmessage"] .composer [data-action="send-opposite"] + [data-action="choose-image"] {
+:root[data-preset^="you"] .composer [data-action="send-opposite"] + [data-action="choose-image"] {
   margin-left: -3px;
 }
 
-:root[data-preset="youmessage"] .composer textarea {
+:root[data-preset^="you"] .composer textarea {
   min-height: 40px;
   padding: 9px 13px 8px;
   border: 1px solid var(--line);
@@ -186,13 +186,13 @@
   -ms-overflow-style: none;
 }
 
-:root[data-preset="youmessage"] .composer textarea::-webkit-scrollbar {
+:root[data-preset^="you"] .composer textarea::-webkit-scrollbar {
   display: none;
   width: 0;
   height: 0;
 }
 
-:root[data-preset="youmessage"] .send-btn {
+:root[data-preset^="you"] .send-btn {
   flex-basis: 40px;
   width: 40px;
   height: 40px;
@@ -201,11 +201,11 @@
   color: #FFFFFF;
 }
 
-:root[data-preset="youmessage"] .send-btn:disabled {
+:root[data-preset^="you"] .send-btn:disabled {
   opacity: .42;
 }
 
-:root[data-preset="youmessage"] .editing-banner {
+:root[data-preset^="you"] .editing-banner {
   color: var(--accent-strong);
 }
 
@@ -253,75 +253,75 @@
 }
 
 /* Blue replaces the former green accent throughout the app */
-:root[data-preset="youmessage"] .nav-item.active {
+:root[data-preset^="you"] .nav-item.active {
   color: var(--accent-strong);
 }
 
-:root[data-preset="youmessage"] .nav-item.active svg,
-:root[data-preset="youmessage"] .menu-item svg {
+:root[data-preset^="you"] .nav-item.active svg,
+:root[data-preset^="you"] .menu-item svg {
   color: var(--accent-strong);
 }
 
-:root[data-preset="youmessage"] .setting-action {
+:root[data-preset^="you"] .setting-action {
   color: var(--accent-strong);
   background: color-mix(in srgb, var(--accent-strong) 10%, var(--surface));
 }
 
-:root[data-preset="youmessage"] .setting-select {
+:root[data-preset^="you"] .setting-select {
   border-color: var(--line);
   background: var(--surface-2);
 }
 
-:root[data-preset="youmessage"] .form-input:focus {
+:root[data-preset^="you"] .form-input:focus {
   border-color: var(--accent-strong);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-strong) 14%, transparent);
 }
 
-:root[data-preset="youmessage"] .btn-primary {
+:root[data-preset^="you"] .btn-primary {
   background: var(--accent-strong);
   color: #FFFFFF;
 }
 
-:root[data-preset="youmessage"] .btn-secondary {
+:root[data-preset^="you"] .btn-secondary {
   background: var(--surface-2);
   color: var(--text);
 }
 
-:root[data-preset="youmessage"] .search-field {
+:root[data-preset^="you"] .search-field {
   background: var(--surface-2);
   border-color: var(--line);
 }
 
-:root[data-preset="youmessage"] .search-result mark {
+:root[data-preset^="you"] .search-result mark {
   background: var(--accent);
   color: var(--text);
 }
 
-:root[data-preset="youmessage"] .bottom-nav {
+:root[data-preset^="you"] .bottom-nav {
   background: color-mix(in srgb, var(--surface) 94%, transparent);
   border-top-color: var(--line);
 }
 
-:root[data-preset="youmessage"] .modal {
+:root[data-preset^="you"] .modal {
   border: 1px solid var(--line);
 }
 
-:root[data-preset="youmessage"] .toast {
+:root[data-preset^="you"] .toast {
   background: var(--text);
   color: var(--bg);
 }
 
-:root[data-preset="youmessage"] .message-bubble.highlight {
+:root[data-preset^="you"] .message-bubble.highlight {
   outline-color: var(--accent-strong);
 }
 
 
 /* YouMessage iMessage-style rounded bubbles and curved SVG tails */
-:root[data-preset="youmessage"] .messages {
+:root[data-preset^="you"] .messages {
   gap: 18px;
 }
 
-:root[data-preset="youmessage"] .message-bubble {
+:root[data-preset^="you"] .message-bubble {
   position: relative;
   z-index: 1;
   max-width: min(80%, 520px);
@@ -334,20 +334,20 @@
   box-shadow: none;
 }
 
-:root[data-preset="youmessage"] .message-bubble .bubble-text {
+:root[data-preset^="you"] .message-bubble .bubble-text {
   display: block;
   white-space: pre-wrap;
 }
 
-:root[data-preset="youmessage"] .message-bubble.opposite-bubble {
+:root[data-preset^="you"] .message-bubble.opposite-bubble {
   border-radius: 24px;
 }
 
-:root[data-preset="youmessage"] .message-bubble::after {
+:root[data-preset^="you"] .message-bubble::after {
   content: none;
 }
 
-:root[data-preset="youmessage"] .youmessage-tail {
+:root[data-preset^="you"] .youmessage-tail {
   position: absolute;
   display: block;
   bottom: -3.5px;
@@ -357,65 +357,65 @@
   z-index: -1;
 }
 
-:root[data-preset="youmessage"] .message-bubble:not(.opposite-bubble) .youmessage-tail {
+:root[data-preset^="you"] .message-bubble:not(.opposite-bubble) .youmessage-tail {
   right: -8.5px;
   color: var(--bubble);
   transform: rotate(-2deg) scale(1);
 }
 
-:root[data-preset="youmessage"] .message-bubble.opposite-bubble .youmessage-tail {
+:root[data-preset^="you"] .message-bubble.opposite-bubble .youmessage-tail {
   left: -8.5px;
   color: var(--bubble-other);
   transform: scaleX(-1) rotate(-2deg);
 }
 
-:root[data-preset="youmessage"] .message-bubble.image-bubble {
+:root[data-preset^="you"] .message-bubble.image-bubble {
   padding: 5px;
   overflow: visible;
 }
 
-:root[data-preset="youmessage"] .message-bubble.image-bubble img {
+:root[data-preset^="you"] .message-bubble.image-bubble img {
   border-radius: 16px;
 }
 
 
 /* YouMessage: white iMessage canvas and grouped message runs */
-:root[data-preset="youmessage"] .messages {
+:root[data-preset^="you"] .messages {
   gap: 0;
 }
 
-:root[data-preset="youmessage"] .chat-intro {
+:root[data-preset^="you"] .chat-intro {
   margin-bottom: 4px;
 }
 
-:root[data-preset="youmessage"] .message-row {
+:root[data-preset^="you"] .message-row {
   margin-top: 18px;
 }
 
-:root[data-preset="youmessage"] .message-row.grouped-prev {
+:root[data-preset^="you"] .message-row.grouped-prev {
   margin-top: 3px;
 }
 
-:root[data-preset="youmessage"] .message-bubble.grouped-next:not(.opposite-bubble) {
+:root[data-preset^="you"] .message-bubble.grouped-next:not(.opposite-bubble) {
   border-bottom-right-radius: 7px;
 }
 
-:root[data-preset="youmessage"] .message-bubble.grouped-prev:not(.opposite-bubble) {
+:root[data-preset^="you"] .message-bubble.grouped-prev:not(.opposite-bubble) {
   border-top-right-radius: 7px;
 }
 
-:root[data-preset="youmessage"] .message-bubble.grouped-next.opposite-bubble {
+:root[data-preset^="you"] .message-bubble.grouped-next.opposite-bubble {
   border-bottom-left-radius: 7px;
 }
 
-:root[data-preset="youmessage"] .message-bubble.grouped-prev.opposite-bubble {
+:root[data-preset^="you"] .message-bubble.grouped-prev.opposite-bubble {
   border-top-left-radius: 7px;
 }
 
 /* The default preset uses its original, unwrapped chat-header markup. */
 
 /* YouMessage acrylic chat navigation: approved final layout */
-:root[data-preset="youmessage"] {
+:root[data-preset^="you"] {
   --chat-canvas: #F2F2F7;
   --chat-nav-gradient-top: rgba(255, 255, 255, 1);
   --chat-nav-gradient-mid: rgba(255, 255, 255, .76);
@@ -424,7 +424,7 @@
   --chat-nav-button-shadow: 0 2px 9px rgba(0, 0, 0, .13);
 }
 
-:root[data-preset="youmessage"][data-theme="dark"] {
+:root[data-preset^="you"][data-theme="dark"] {
   --chat-canvas: #1C1C1E;
   --chat-nav-gradient-top: rgba(0, 0, 0, 1);
   --chat-nav-gradient-mid: rgba(0, 0, 0, .76);
@@ -434,7 +434,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root[data-preset="youmessage"][data-theme="system"] {
+  :root[data-preset^="you"][data-theme="system"] {
     --chat-canvas: #1C1C1E;
     --chat-nav-gradient-top: rgba(0, 0, 0, 1);
     --chat-nav-gradient-mid: rgba(0, 0, 0, .76);
@@ -445,7 +445,7 @@
 }
 
 /* Header layout: side actions + centered conversation identity */
-:root[data-preset="youmessage"] .chat-screen {
+:root[data-preset^="you"] .chat-screen {
   position: relative;
   isolation: isolate;
   background: var(--chat-canvas);
@@ -453,7 +453,7 @@
 
 /* The header floats above the scrollable message layer.
    Its transparent gradient reveals messages passing underneath it. */
-:root[data-preset="youmessage"] .chat-header {
+:root[data-preset^="you"] .chat-header {
   position: absolute;
   z-index: 3;
   top: 0;
@@ -471,7 +471,7 @@
   overflow: visible;
 }
 
-:root[data-preset="youmessage"] .chat-header::before {
+:root[data-preset^="you"] .chat-header::before {
   content: "";
   position: absolute;
   z-index: 0;
@@ -489,20 +489,20 @@
   pointer-events: none;
 }
 
-:root[data-preset="youmessage"] .chat-header-action,
-:root[data-preset="youmessage"] .chat-header-center {
+:root[data-preset^="you"] .chat-header-action,
+:root[data-preset^="you"] .chat-header-center {
   position: relative;
   z-index: 1;
 }
 
-:root[data-preset="youmessage"] .messages {
+:root[data-preset^="you"] .messages {
   position: relative;
   z-index: 1;
   background: transparent;
   padding-top: calc(env(safe-area-inset-top) + 92px);
 }
 
-:root[data-preset="youmessage"] .chat-header-action {
+:root[data-preset^="you"] .chat-header-action {
   width: 42px;
   height: 42px;
   display: flex;
@@ -510,7 +510,7 @@
   justify-content: center;
 }
 
-:root[data-preset="youmessage"] .chat-header .icon-btn {
+:root[data-preset^="you"] .chat-header .icon-btn {
   position: relative;
   isolation: isolate;
   display: grid;
@@ -526,7 +526,7 @@
   overflow: visible;
 }
 
-:root[data-preset="youmessage"] .chat-header .icon-btn::before {
+:root[data-preset^="you"] .chat-header .icon-btn::before {
   content: "";
   position: absolute;
   z-index: -1;
@@ -540,11 +540,11 @@
   pointer-events: none;
 }
 
-:root[data-preset="youmessage"] .chat-header .icon-btn:active::before {
+:root[data-preset^="you"] .chat-header .icon-btn:active::before {
   transform: scale(.94);
 }
 
-:root[data-preset="youmessage"] .chat-header .icon-btn svg {
+:root[data-preset^="you"] .chat-header .icon-btn svg {
   position: relative;
   z-index: 1;
   display: block;
@@ -552,18 +552,18 @@
   height: 18px;
 }
 
-:root[data-preset="youmessage"] .chat-header .back-btn svg {
+:root[data-preset^="you"] .chat-header .back-btn svg {
   stroke-width: 2.8px;
   transform: translateX(-1.2px);
 }
 
-:root[data-preset="youmessage"] .chat-header .chat-menu-btn svg circle {
+:root[data-preset^="you"] .chat-header .chat-menu-btn svg circle {
   transform-box: fill-box;
   transform-origin: center;
   transform: scale(1.06);
 }
 
-:root[data-preset="youmessage"] .chat-header-center {
+:root[data-preset^="you"] .chat-header-center {
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -573,7 +573,7 @@
   text-align: center;
 }
 
-:root[data-preset="youmessage"] .chat-header-center .avatar {
+:root[data-preset^="you"] .chat-header-center .avatar {
   display: grid;
   place-items: center;
   flex: 0 0 42px;
@@ -586,7 +586,7 @@
   font-size: 21px;
 }
 
-:root[data-preset="youmessage"] .chat-header-title {
+:root[data-preset^="you"] .chat-header-title {
   flex: 0 1 auto;
   min-width: 0;
   max-width: 100%;
@@ -610,4 +610,30 @@
 }
 :root[data-preset^="you"] .message-row.has-quote > .message-quote {
   margin-bottom: 3px;
+}
+
+
+/* YouMessage Pink: shared YouMessage layout with a rose-pink accent palette */
+:root[data-preset="youmessage-pink"] {
+  --accent: #FFE1EB;
+  --accent-strong: #FF6B9B;
+  --bubble: #FF6B9B;
+}
+
+:root[data-preset="youmessage-pink"][data-theme="dark"] {
+  --accent: #542638;
+  --accent-strong: #FF6B9B;
+  --bubble: #FF6B9B;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-preset="youmessage-pink"][data-theme="system"] {
+    --accent: #542638;
+    --accent-strong: #FF6B9B;
+    --bubble: #FF6B9B;
+  }
+}
+
+:root[data-preset="youmessage-pink"] .primary-icon-btn {
+  box-shadow: 0 5px 14px rgba(255, 107, 155, .22);
 }
