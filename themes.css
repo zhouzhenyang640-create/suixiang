@@ -613,27 +613,27 @@
 }
 
 
-/* YouMessage Pink: shared YouMessage layout with a rose-pink accent palette */
-:root[data-preset="youmessage-pink"] {
+/* YouPink: shared YouMessage layout with a rose-pink accent palette */
+:root[data-preset="youpink"] {
   --accent: #FFE1EB;
   --accent-strong: #FF6B9B;
   --bubble: #FF6B9B;
 }
 
-:root[data-preset="youmessage-pink"][data-theme="dark"] {
+:root[data-preset="youpink"][data-theme="dark"] {
   --accent: #542638;
   --accent-strong: #FF6B9B;
   --bubble: #FF6B9B;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root[data-preset="youmessage-pink"][data-theme="system"] {
+  :root[data-preset="youpink"][data-theme="system"] {
     --accent: #542638;
     --accent-strong: #FF6B9B;
     --bubble: #FF6B9B;
   }
 }
 
-:root[data-preset="youmessage-pink"] .primary-icon-btn {
+:root[data-preset="youpink"] .primary-icon-btn {
   box-shadow: 0 5px 14px rgba(255, 107, 155, .22);
 }
