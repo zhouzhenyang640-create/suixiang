@@ -355,7 +355,7 @@ function applyTheme() {
       </div>
       </div></div>
       <div class="settings-group"><div class="settings-title">数据与备份</div><div class="settings-card">
-        <div class="setting-row"><div><div class="setting-label">导出全部数据</div><div class="setting-help">生成 JSON 备份，包含对话、消息、收藏和图片</div></div><button class="setting-action" data-action="export-backup">导出 JSON</button></div>
+        <div class="setting-row"><div><div class="setting-label">导出全部数据</div><div class="setting-help">生成 JSON 备份，包含对话、消息、收藏、图片和聊天背景</div></div><button class="setting-action" data-action="export-backup">导出 JSON</button></div>
         <div class="setting-row"><div><div class="setting-label">导入备份</div><div class="setting-help">按记录 ID 合并数据，不会清空现有内容</div></div><button class="setting-action" data-action="import-backup">选择文件</button></div>
         <div class="setting-row"><div><div class="setting-label">导出单个对话</div><div class="setting-help">选择一个对话，保存为 TXT 文字文件</div></div><button class="setting-action" data-action="export-one">导出 TXT</button></div>
         <div class="setting-row"><div><div class="setting-label">申请持久化存储</div><div class="setting-help">尽量降低浏览器自动清理本站数据的可能</div></div><button class="setting-action" data-action="persist-storage">申请</button></div>
