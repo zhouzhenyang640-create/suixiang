@@ -3,11 +3,12 @@
 
   const DB_NAME = 'suixiang-local-db';
   const DB_VERSION = 1;
-  const APP_VERSION = '9.3.7';
+  const APP_VERSION = '9.3.8';
   const app = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   const toastRoot = document.getElementById('toast-root');
   const imagePicker = document.getElementById('image-picker');
+  const backgroundPicker = document.getElementById('background-picker');
   const backupPicker = document.getElementById('backup-picker');
 
   let db;
@@ -31,6 +32,8 @@
   let updateCheckInProgress = false;
   let longPressTimer = null;
   let imageUrls = new Map();
+  let chatBackgroundUrl = null;
+  let activeChatBackgroundBlob = null;
 
   const icons = {
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>',
@@ -236,21 +239,36 @@ function normalizePreset(preset) {
   return ['youmessage', 'youpink'].includes(preset) ? preset : 'default';
 }
 
-function applyTheme() { 
-  const theme = settings.theme || 'system'; 
-  const preset = normalizePreset(settings.preset); 
-  document.documentElement.dataset.theme = theme; 
+function syncChatBackground() {
+  const blob = settings.chatBackground instanceof Blob ? settings.chatBackground : null;
+  if (blob !== activeChatBackgroundBlob) {
+    if (chatBackgroundUrl) URL.revokeObjectURL(chatBackgroundUrl);
+    activeChatBackgroundBlob = blob;
+    chatBackgroundUrl = blob ? URL.createObjectURL(blob) : null;
+  }
+  document.documentElement.style.setProperty(
+    '--chat-background-image',
+    chatBackgroundUrl ? `url("${chatBackgroundUrl}")` : 'none'
+  );
+}
+
+function applyTheme() {
+  const theme = settings.theme || 'system';
+  const preset = normalizePreset(settings.preset);
+  document.documentElement.dataset.theme = theme;
   document.documentElement.dataset.preset = preset;
+  syncChatBackground();
   const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   const isDark = theme === 'dark' || (theme === 'system' && systemDark);
   const color = preset.startsWith('you') ? (isDark ? '#000000' : '#FFFFFF') : (isDark ? '#171916' : '#f5f5f2');
   const oldMeta = document.querySelector('meta[name="theme-color"]');
-  if (!oldMeta || oldMeta.content !== color) { 
-    if (oldMeta) oldMeta.remove(); const newMeta = document.createElement('meta'); 
-    newMeta.name = 'theme-color'; 
-    newMeta.content = color; 
-    document.head.appendChild(newMeta); 
-  } 
+  if (!oldMeta || oldMeta.content !== color) {
+    if (oldMeta) oldMeta.remove();
+    const newMeta = document.createElement('meta');
+    newMeta.name = 'theme-color';
+    newMeta.content = color;
+    document.head.appendChild(newMeta);
+  }
 }
   function sortedConversations() {
     return [...conversations].sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || (b.updatedAt || 0) - (a.updatedAt || 0));
@@ -319,9 +337,22 @@ function applyTheme() {
 
   function renderSettingsBody() {
     const selectedPreset = normalizePreset(settings.preset);
+    const hasChatBackground = settings.chatBackground instanceof Blob && Boolean(chatBackgroundUrl);
     return `
       <div class="settings-group"><div class="settings-title">外观</div><div class="settings-card">
-      <div class="setting-row"><div><div class="setting-label">聊天主题</div><div class="setting-help">选择预设的界面风格</div></div><select class="setting-select" id="preset-select"><option value="default" ${selectedPreset === 'default' ? 'selected' : ''}>默认主题</option><option value="youmessage" ${selectedPreset === 'youmessage' ? 'selected' : ''}>YouMessage</option><option value="youpink" ${selectedPreset === 'youpink' ? 'selected' : ''}>YouPink</option></select></div> <div class="setting-row"><div><div class="setting-label">主题模式</div><div class="setting-help">跟随系统，或固定使用浅色 / 深色</div></div><select class="setting-select" id="theme-select"><option value="system" ${settings.theme === 'system' ? 'selected' : ''}>跟随系统</option><option value="light" ${settings.theme === 'light' ? 'selected' : ''}>浅色模式</option><option value="dark" ${settings.theme === 'dark' ? 'selected' : ''}>深色模式</option></select></div>
+      <div class="setting-row"><div><div class="setting-label">聊天主题</div><div class="setting-help">选择预设的界面风格</div></div><select class="setting-select" id="preset-select"><option value="default" ${selectedPreset === 'default' ? 'selected' : ''}>默认主题</option><option value="youmessage" ${selectedPreset === 'youmessage' ? 'selected' : ''}>YouMessage</option><option value="youpink" ${selectedPreset === 'youpink' ? 'selected' : ''}>YouPink</option></select></div>
+      <div class="setting-row"><div><div class="setting-label">主题模式</div><div class="setting-help">跟随系统，或固定使用浅色 / 深色</div></div><select class="setting-select" id="theme-select"><option value="system" ${settings.theme === 'system' ? 'selected' : ''}>跟随系统</option><option value="light" ${settings.theme === 'light' ? 'selected' : ''}>浅色模式</option><option value="dark" ${settings.theme === 'dark' ? 'selected' : ''}>深色模式</option></select></div>
+      <div class="setting-background-block">
+        <div class="setting-label">聊天背景</div>
+        <div class="setting-background-preview">${hasChatBackground ? `<img src="${esc(chatBackgroundUrl)}" alt="当前聊天背景">` : '<span>尚未设置背景图片</span>'}</div>
+        <div class="setting-background-controls">
+          <div class="setting-help">仅显示在聊天消息区域，夜间模式会自动压暗。</div>
+          <div class="setting-background-actions">
+            <button class="setting-action" data-action="choose-chat-background">${hasChatBackground ? '更换背景' : '上传背景'}</button>
+            ${hasChatBackground ? '<button class="setting-action setting-background-remove" data-action="remove-chat-background">移除</button>' : ''}
+          </div>
+        </div>
+      </div>
       </div></div>
       <div class="settings-group"><div class="settings-title">数据与备份</div><div class="settings-card">
         <div class="setting-row"><div><div class="setting-label">导出全部数据</div><div class="setting-help">生成 JSON 备份，包含对话、消息、收藏和图片</div></div><button class="setting-action" data-action="export-backup">导出 JSON</button></div>
@@ -955,6 +986,34 @@ async function sendTextMessage(side = 'right') {
     closeModal();
   }
 
+  async function saveChatBackground(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast('请选择图片文件');
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      toast('图片不能超过 15 MB，请先压缩后再上传');
+      return;
+    }
+    try {
+      await put('settings', { key: 'chatBackground', value: file });
+      await refreshData();
+      render();
+      toast('聊天背景已更新');
+    } catch (error) {
+      console.error(error);
+      toast('背景保存失败，可能是本机存储空间不足');
+    }
+  }
+
+  async function removeChatBackground() {
+    await remove('settings', 'chatBackground');
+    await refreshData();
+    render();
+    toast('已移除聊天背景');
+  }
+
   function downloadFile(filename, content, mime = 'application/octet-stream') {
     const blob = content instanceof Blob ? content : new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -1031,7 +1090,12 @@ async function sendTextMessage(side = 'right') {
     try {
       const serializedMessages = await Promise.all(messages.map(serializeRecord));
       const serializedTrash = await Promise.all(trashItems.map(serializeRecord));
-      const data = { app: 'suixiang', version: 1, exportedAt: new Date().toISOString(), conversations, messages: serializedMessages, trash: serializedTrash, settings };
+      const exportedSettings = { ...settings };
+      if (exportedSettings.chatBackground instanceof Blob) {
+        exportedSettings.chatBackgroundDataUrl = await blobToDataUrl(exportedSettings.chatBackground);
+        delete exportedSettings.chatBackground;
+      }
+      const data = { app: 'suixiang', version: 1, exportedAt: new Date().toISOString(), conversations, messages: serializedMessages, trash: serializedTrash, settings: exportedSettings };
       downloadFile(`随想备份_${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(data), 'application/json;charset=utf-8');
       toast('JSON 备份已生成');
     } catch (error) {
@@ -1052,6 +1116,9 @@ async function sendTextMessage(side = 'right') {
       importedTrash.forEach(item => tx.objectStore('trash').put(item));
       if (raw.settings && typeof raw.settings === 'object' && ['system', 'light', 'dark'].includes(raw.settings.theme)) tx.objectStore('settings').put({ key: 'theme', value: raw.settings.theme });
       if (raw.settings && typeof raw.settings === 'object' && ['default', 'youmessage', 'youmessage-pink', 'youpink'].includes(raw.settings.preset)) tx.objectStore('settings').put({ key: 'preset', value: normalizePreset(raw.settings.preset) });
+      if (raw.settings && typeof raw.settings.chatBackgroundDataUrl === 'string' && raw.settings.chatBackgroundDataUrl.startsWith('data:image/')) {
+        tx.objectStore('settings').put({ key: 'chatBackground', value: dataUrlToBlob(raw.settings.chatBackgroundDataUrl) });
+      }
       await txDone(tx);
       await refreshData();
       render();
@@ -1231,6 +1298,8 @@ async function sendTextMessage(side = 'right') {
     else if (action === 'send-opposite') await sendTextMessage('left');
     else if (action === 'toggle-message-side') await toggleMessageSide(id);
     else if (action === 'choose-image') imagePicker.click();
+    else if (action === 'choose-chat-background') backgroundPicker.click();
+    else if (action === 'remove-chat-background') await removeChatBackground();
     else if (action === 'export-backup') await exportBackup();
     else if (action === 'import-backup') backupPicker.click();
     else if (action === 'export-one') {
@@ -1353,6 +1422,11 @@ async function sendTextMessage(side = 'right') {
     const files = event.target.files;
     if (files?.length) await sendImageFiles(files);
     imagePicker.value = '';
+  });
+  backgroundPicker.addEventListener('change', async event => {
+    const file = event.target.files?.[0];
+    if (file) await saveChatBackground(file);
+    backgroundPicker.value = '';
   });
   backupPicker.addEventListener('change', async event => {
     const file = event.target.files?.[0];
