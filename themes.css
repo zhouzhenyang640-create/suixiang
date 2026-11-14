@@ -637,3 +637,27 @@
 :root[data-preset="youpink"] .primary-icon-btn {
   box-shadow: 0 5px 14px rgba(255, 107, 155, .22);
 }
+
+
+/* User chat wallpaper: shared by day/night, with a fixed night-mode dim layer. */
+:root {
+  --chat-background-shade: rgba(0, 0, 0, 0);
+}
+:root[data-theme="dark"] {
+  --chat-background-shade: rgba(0, 0, 0, .42);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] {
+    --chat-background-shade: rgba(0, 0, 0, .42);
+  }
+}
+.messages {
+  background-color: var(--chat-canvas, var(--bg));
+  background-image:
+    linear-gradient(var(--chat-background-shade), var(--chat-background-shade)),
+    var(--chat-background-image, none);
+  background-position: center, center;
+  background-size: cover, cover;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: scroll, scroll;
+}
