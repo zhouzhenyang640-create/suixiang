@@ -280,3 +280,47 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   cursor: pointer;
 }
 .quote-cancel-btn svg { width: 15px; height: 15px; }
+
+
+/* User-selected chat wallpaper preview in Appearance settings */
+.setting-background-block {
+  padding: 15px;
+  border-bottom: 1px solid var(--line);
+}
+.setting-background-block:last-child { border-bottom: 0; }
+.setting-background-preview {
+  height: 104px;
+  margin-top: 11px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  color: var(--muted-2);
+  font-size: 11px;
+}
+.setting-background-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.setting-background-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+.setting-background-controls .setting-help { margin-top: 0; }
+.setting-background-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+}
+.setting-background-remove { color: var(--danger); }
+@media (max-width: 420px) {
+  .setting-background-controls { align-items: flex-start; flex-direction: column; }
+}
