@@ -661,3 +661,16 @@
   background-repeat: no-repeat, no-repeat;
   background-attachment: scroll, scroll;
 }
+
+
+/* Custom wallpaper must win over the YouMessage transparent message canvas. */
+:root[data-preset^="you"] .messages {
+  background-color: var(--chat-canvas, var(--bg));
+  background-image:
+    linear-gradient(var(--chat-background-shade), var(--chat-background-shade)),
+    var(--chat-background-image, none);
+  background-position: center, center;
+  background-size: cover, cover;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: scroll, scroll;
+}
